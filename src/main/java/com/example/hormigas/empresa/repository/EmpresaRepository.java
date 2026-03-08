@@ -8,4 +8,8 @@ import java.util.Optional;
 public interface EmpresaRepository extends JpaRepository<Empresa, Long> {
     Optional<Empresa> findByRfc(String rfc);
     Optional<Empresa> findByNombre(String nombre);
+
+
+    boolean existsByNombre(String nombre);
+    boolean existsByRfc(String rfc);
 }

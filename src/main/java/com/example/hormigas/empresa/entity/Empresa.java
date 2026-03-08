@@ -2,9 +2,10 @@ package com.example.hormigas.empresa.entity;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.processing.Pattern;
+import org.hibernate.annotations.SQLDelete;
 
-import java.time.LocalDate;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(
@@ -32,10 +33,10 @@ public class Empresa {
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    private LocalDate fechaCreacion;
+    private LocalDateTime fechaCreacion;
 
     @Column(nullable = false)
-    private boolean activo = true;
+    private boolean activo;
 
     public Empresa() {}
 
@@ -52,7 +53,7 @@ public class Empresa {
         return id;
     }
 
-    public LocalDate getFechaCreacion() {
+    public LocalDateTime getFechaCreacion() {
         return fechaCreacion;
     }
 
