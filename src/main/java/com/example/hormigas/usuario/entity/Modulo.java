@@ -2,6 +2,10 @@ package com.example.hormigas.usuario.entity;
 
 import jakarta.persistence.*;
 
+/**
+ * De momento solo abra Productos, Movimientos
+ * Usuarios y sucursales
+ */
 @Entity
 @Table(name = "permiso")
 public class Modulo {
