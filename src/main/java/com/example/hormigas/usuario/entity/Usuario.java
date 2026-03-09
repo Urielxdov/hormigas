@@ -31,4 +31,32 @@ public class Usuario {
     private LocalDateTime fechaCreacion;
 
     public Usuario () {}
+
+    public Long getId() {
+        return id;
+    }
+
+    public Empresa getEmpresa() {
+        return empresa;
+    }
+
+    public LocalDateTime getFechaCreacion() {
+        return fechaCreacion;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public String getCorreo() {
+        return correo;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
 }

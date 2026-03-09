@@ -1,6 +1,6 @@
 package com.example.hormigas.movimiento.entity;
 
-import com.example.hormigas.empresa.entity.Empresa;
+import com.example.hormigas.motivo.entity.MotivoMovimiento;
 import com.example.hormigas.producto.entity.Producto;
 import com.example.hormigas.sucursal.entity.Sucursal;
 import com.example.hormigas.usuario.entity.Usuario;
@@ -24,31 +24,115 @@ public class Movimiento {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "empresa_id", nullable = false)
-    private Empresa empresa;
-
-    @ManyToOne
-    @JoinColumn(name = "sucursal_id", nullable = false)
-    private Sucursal sucursal;
-
-    @ManyToOne
-    @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
     @ManyToOne
-    @JoinColumn(name = "usuario_id", nullable = false)
+    private Sucursal sucursal;
+
+    @ManyToOne
     private Usuario usuario;
 
+    @ManyToOne
     @Column(nullable = false)
-    private String tipoMovimiento;
+    private MotivoMovimiento motivo;
 
-    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private TipoMovimiento tipoMovimiento;
+
     private int cantidad;
 
-    @Column(nullable = false)
-    private LocalDateTime fecha = LocalDateTime.now();
+    private int stockAnterior;
+
+    private int stockNuevo;
 
     private String referencia;
 
+    private LocalDateTime fecha;
+
     public Movimiento() {}
+
+    public Long getId() {
+        return id;
+    }
+
+
+    public Sucursal getSucursal() {
+        return sucursal;
+    }
+
+    public Producto getProducto() {
+        return producto;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public TipoMovimiento getTipoMovimiento() {
+        return tipoMovimiento;
+    }
+
+    public int getCantidad() {
+        return cantidad;
+    }
+
+    public LocalDateTime getFecha() {
+        return fecha;
+    }
+
+    public String getReferencia() {
+        return referencia;
+    }
+
+    public void setSucursal(Sucursal sucursal) {
+        this.sucursal = sucursal;
+    }
+
+    public void setProducto(Producto producto) {
+        this.producto = producto;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
+    }
+
+    public void setTipoMovimiento(TipoMovimiento tipoMovimiento) {
+        this.tipoMovimiento = tipoMovimiento;
+    }
+
+    public void setCantidad(int cantidad) {
+        this.cantidad = cantidad;
+    }
+
+    public void setFecha(LocalDateTime fecha) {
+        this.fecha = fecha;
+    }
+
+    public void setReferencia(String referencia) {
+        this.referencia = referencia;
+    }
+
+    public MotivoMovimiento getMotivo() {
+        return motivo;
+    }
+
+    public void setMotivo(MotivoMovimiento motivo) {
+        this.motivo = motivo;
+    }
+
+    public int getStockAnterior() {
+        return stockAnterior;
+    }
+
+    public void setStockAnterior(int stockAnterior) {
+        this.stockAnterior = stockAnterior;
+    }
+
+    public int getStockNuevo() {
+        return stockNuevo;
+    }
+
+    public void setStockNuevo(int stockNuevo) {
+        this.stockNuevo = stockNuevo;
+    }
 }

@@ -23,4 +23,24 @@ public class Sucursal {
     private boolean actica;
 
     public Sucursal() {}
+
+    public Long getId() {
+        return id;
+    }
+
+    public Empresa getEmpresa() {
+        return empresa;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public String getDireccion() {
+        return direccion;
+    }
+
+    public boolean isActica() {
+        return actica;
+    }
 }

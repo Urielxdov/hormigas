@@ -13,14 +13,14 @@ public enum TipoMovimiento {
      * Aumenta el stock.
      * Ejemplo: se compran 20 refrescos a Coca-Cola.
      */
-    COMPRA,
+    COMPRA(1),
 
     /**
      * Salida de inventario por venta a un cliente.
      * Disminuye el stock.
      * Ejemplo: se venden 3 refrescos en la tienda.
      */
-    VENTA,
+    VENTA(-1),
 
     /**
      * Corrección manual del inventario cuando el sistema
@@ -29,14 +29,14 @@ public enum TipoMovimiento {
      * Puede aumentar o disminuir el stock dependiendo del ajuste.
      * Ejemplo: el sistema dice 10 pero físicamente hay 12.
      */
-    AJUSTE,
+    AJUSTE(0),
 
     /**
      * Pérdida de inventario por daño, caducidad, robo o desperdicio.
      * Siempre disminuye el stock.
      * Ejemplo: productos caducados o rotos.
      */
-    MERMA,
+    MERMA(-1),
 
     /**
      * Movimiento causado por una devolución.
@@ -45,17 +45,30 @@ public enum TipoMovimiento {
      * - Cliente devuelve un producto -> aumenta inventario.
      * - Se devuelve al proveedor -> disminuye inventario.
      */
-    DEVOLUCION,
+    DEVOLUCION(1),
 
     /**
      * Entrada de inventario proveniente de otra sucursal o almacén.
      * Aumenta el stock en la sucursal destino.
      */
-    TRASLADO_ENTRADA,
+    TRASLADO_ENTRADA(1),
 
     /**
      * Salida de inventario hacia otra sucursal o almacén.
      * Disminuye el stock en la sucursal origen.
      */
-    TRASLADO_SALIDA
+    TRASLADO_SALIDA(-1);
+
+    private final int factor;
+    
+    TipoMovimiento(int factor) {
+        this.factor = factor;
+    }
+
+    public int aplicar(int stockActual, int cantidad) {
+        if (this == AJUSTE) {
+            return cantidad;
+        }
+        return stockActual + (cantidad * factor);
+    }
 }

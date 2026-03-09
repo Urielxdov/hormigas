@@ -34,4 +34,28 @@ public class Producto {
     private boolean activo = true;
 
     public Producto() {}
+
+    public Long getId() {
+        return id;
+    }
+
+    public Empresa getEmpresa() {
+        return empresa;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public String getSku() {
+        return sku;
+    }
+
+    public BigDecimal getPrecio() {
+        return precio;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
 }
