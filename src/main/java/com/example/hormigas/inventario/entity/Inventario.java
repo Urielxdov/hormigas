@@ -4,6 +4,8 @@ import com.example.hormigas.producto.entity.Producto;
 import com.example.hormigas.sucursal.entity.Sucursal;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(
         name = "inventario",
@@ -36,6 +38,8 @@ public class Inventario {
 
     private Integer stockMinimo;
 
+    private LocalDateTime ultimaActualizacion;
+
     public Inventario() {}
 
     public Long getId() {
@@ -64,5 +68,13 @@ public class Inventario {
 
     public void setStockMinimo(Integer stockMinimo) {
         this.stockMinimo = stockMinimo;
+    }
+
+    public LocalDateTime getUltimaActualizacion() {
+        return ultimaActualizacion;
+    }
+
+    public void setUltimaActualizacion(LocalDateTime ultimaActualizacion) {
+        this.ultimaActualizacion = ultimaActualizacion;
     }
 }

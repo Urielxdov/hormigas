@@ -1,4 +1,4 @@
-package com.example.hormigas.usuario.entity;
+package com.example.hormigas.security.entity;
 
 import java.io.Serializable;
 import java.util.Objects;

@@ -1,4 +1,4 @@
-package com.example.hormigas.usuario.entity;
+package com.example.hormigas.security.entity.permiso;
 
 import jakarta.persistence.*;
 

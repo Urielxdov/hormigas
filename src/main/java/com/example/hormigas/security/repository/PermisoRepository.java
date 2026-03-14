@@ -1,6 +1,6 @@
-package com.example.hormigas.usuario.repository;
+package com.example.hormigas.security.repository;
 
-import com.example.hormigas.usuario.entity.Permiso;
+import com.example.hormigas.security.entity.permiso.Permiso;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PermisoRepository extends JpaRepository<Permiso, Long> {

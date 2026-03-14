@@ -21,8 +21,14 @@ public class Producto {
     @JoinColumn(name = "empresa_id", nullable = false)
     private Empresa empresa;
 
+    @ManyToOne(optional = true)
+    private Categoria categoria;
+
     @Column(nullable = false)
     private String nombre;
+
+    @Column(nullable = true)
+    private String descripcion;
 
     @Column(nullable = false)
     private String sku;
@@ -57,5 +63,41 @@ public class Producto {
 
     public boolean isActivo() {
         return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public void setEmpresa(Empresa empresa) {
+        this.empresa = empresa;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public Categoria getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(Categoria categoria) {
+        this.categoria = categoria;
+    }
+
+    public void setSku(String sku) {
+        this.sku = sku;
+    }
+
+    public void setPrecio(BigDecimal precio) {
+        this.precio = precio;
     }
 }

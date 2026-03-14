@@ -1,6 +1,7 @@
 package com.example.hormigas.sucursal.entity;
 
 import com.example.hormigas.empresa.entity.Empresa;
+import com.example.hormigas.security.entity.Usuario;
 import jakarta.persistence.*;
 
 @Entity
@@ -14,13 +15,17 @@ public class Sucursal {
     @JoinColumn(name = "empresa_id")
     private Empresa empresa;
 
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "encargado")
+    private Usuario usuario;
+
     @Column(nullable = false)
     private String nombre;
 
     private String direccion;
 
     @Column(nullable = false)
-    private boolean actica;
+    private boolean activa;
 
     public Sucursal() {}
 
@@ -41,6 +46,6 @@ public class Sucursal {
     }
 
     public boolean isActica() {
-        return actica;
+        return activa;
     }
 }

@@ -1,17 +1,19 @@
-package com.example.hormigas.usuario.entity;
+package com.example.hormigas.security.entity;
 
+import com.example.hormigas.security.entity.rol.Rol;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "usurio_rol")
-@IdClass(UsuarioRolId.class)
 public class UsuarioRol {
     @Id
+    @GeneratedValue
+    private Long id;
+
     @ManyToOne
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
-    @Id
     @ManyToOne
     @JoinColumn(name = "rol_id")
     private Rol rol;

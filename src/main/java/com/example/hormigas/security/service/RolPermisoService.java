@@ -1,4 +1,4 @@
-package com.example.hormigas.usuario.service;
+package com.example.hormigas.security.service;
 
 import org.springframework.stereotype.Service;
 
