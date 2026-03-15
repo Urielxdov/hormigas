@@ -1,16 +1,14 @@
 package com.example.hormigas.producto.entity;
 
 import com.example.hormigas.empresa.entity.Empresa;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
+import jakarta.persistence.*;
 
 @Entity
 public class Categoria {
     @Id
     private Long id;
 
+    @ManyToOne
     @JoinColumn(name = "empresa_id")
     private Empresa empresa;
 

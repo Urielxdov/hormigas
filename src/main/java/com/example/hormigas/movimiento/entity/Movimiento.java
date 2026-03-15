@@ -33,7 +33,7 @@ public class Movimiento {
     private Usuario usuario;
 
     @ManyToOne
-    @Column(nullable = false)
+    @JoinColumn(name = "motivo")
     private MotivoMovimiento motivo;
 
     @Enumerated(EnumType.STRING)

@@ -6,6 +6,9 @@ import com.example.hormigas.security.entity.Usuario;
 import com.example.hormigas.security.mapper.UsuarioMapper;
 import com.example.hormigas.security.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,5 +40,12 @@ public class AuthService {
         usuario.setUltimoAcceso(LocalDateTime.now());
         usuarioRepository.save(usuario);
         return UsuarioMapper.toResponse(usuario);
+    }
+
+    public Usuario getUsuarioLogueado () {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String correo = (principal instanceof UserDetails userDetails) ? userDetails.getUsername() : principal.toString();
+        return usuarioRepository.findByCorreo(correo)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no logueado"));
     }
 }

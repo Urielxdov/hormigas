@@ -69,4 +69,24 @@ public class Usuario {
     public void setUltimoAcceso(LocalDateTime ultimoAcceso) {
         this.ultimoAcceso = ultimoAcceso;
     }
+
+    public void setEmpresa(Empresa empresa) {
+        this.empresa = empresa;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public void setCorreo(String correo) {
+        this.correo = correo;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
+    }
 }
