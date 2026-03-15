@@ -30,6 +30,8 @@ public class Usuario {
 
     private LocalDateTime fechaCreacion;
 
+    private LocalDateTime ultimoAcceso;
+
     public Usuario () {}
 
     public Long getId() {
@@ -58,5 +60,13 @@ public class Usuario {
 
     public String getNombre() {
         return nombre;
+    }
+
+    public LocalDateTime getUltimoAcceso() {
+        return ultimoAcceso;
+    }
+
+    public void setUltimoAcceso(LocalDateTime ultimoAcceso) {
+        this.ultimoAcceso = ultimoAcceso;
     }
 }
