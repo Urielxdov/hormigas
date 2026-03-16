@@ -36,6 +36,7 @@ public class AuthController {
         final String token = authService.login(loginRequestDTO);
         final Cookie cookie = createAuthCookie(token);
         response.addCookie(cookie);
+        response.setStatus(HttpServletResponse.SC_OK);
     }
 
     private Cookie createAuthCookie(String token) {
