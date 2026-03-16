@@ -46,12 +46,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        final Optional<String> token = getJwtFromCookie(request);
+        Optional<String> token = getJwtFromHeader(request);
 
-        if (token.isEmpty()) {
+        if(token.isEmpty()) {
+            token = getJwtFromCookie(request);
+        }
+
+        if(token.isEmpty()) {
             filterChain.doFilter(request, response);
             return;
         }
+
         if(!authService.validateToken(token.get())) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             throw new BadCredentialsException("Token invalido");
@@ -61,8 +66,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-        authenticationToken.setDetails(userDetails);
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
         filterChain.doFilter(request, response);
@@ -78,4 +81,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 .map(Cookie::getValue))
                 .findFirst();
     }
+
+    private Optional<String> getJwtFromHeader(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            return Optional.of(header.substring(7));
+        }
+        return Optional.empty();
+    }
+
 }
+

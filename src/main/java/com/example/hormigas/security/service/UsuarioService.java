@@ -8,7 +8,10 @@ import com.example.hormigas.security.dto.usuario.UsuarioUpdateDTO;
 import com.example.hormigas.security.entity.Usuario;
 import com.example.hormigas.security.mapper.UsuarioMapper;
 import com.example.hormigas.security.repository.UsuarioRepository;
+import com.example.hormigas.security.service.interfaces.AuthService;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,13 +24,13 @@ public class UsuarioService implements UserDetailsService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmpresaRepository empresaRepository;
-    //private final AuthService authService;
+    private final AuthService authService;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, EmpresaRepository empresaRepository) {
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, EmpresaRepository empresaRepository, AuthService authService) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.empresaRepository = empresaRepository;
-        //this.authService = authService;
+        this.authService = authService;
     }
     @Override
     public UserDetails loadUserByUsername(String correo) throws UsernameNotFoundException {
@@ -49,17 +52,15 @@ public class UsuarioService implements UserDetailsService {
         }
 
         // Usuario ya logeado
+        Usuario usuarioActual = getUsuarioLogueado();
 
 
-        // Extraccion de la empresa de usuario
-        Empresa empresa = empresaRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("No jalo"));
 
         Usuario usuario = new Usuario();
         usuario.setCorreo(dto.correo());
         usuario.setNombre(dto.nombre());
         usuario.setPasswordHash(passwordEncoder.encode(dto.password()));
-        usuario.setEmpresa(empresa);
+        usuario.setEmpresa(usuarioActual.getEmpresa());
 
         usuarioRepository.save(usuario);
 
@@ -103,5 +104,16 @@ public class UsuarioService implements UserDetailsService {
                 .orElseThrow(() -> new EntityNotFoundException("Correo no registrado"));
 
         return usuario;
+    }
+
+    public Usuario getUsuarioLogueado () {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new RuntimeException("No hay usuario autenticado");
+        }
+        // auth.getPrincipal() normalmente es un UserDetails
+        String correo = auth.getName();
+        return usuarioRepository.findByCorreo(correo)
+                .orElseThrow(() -> new RuntimeException("Usuario logueado no encotrado"));
     }
 }
