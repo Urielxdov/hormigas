@@ -2,6 +2,9 @@ package com.example.hormigas.security.service;
 
 import com.example.hormigas.empresa.entity.Empresa;
 import com.example.hormigas.empresa.repository.EmpresaRepository;
+import com.example.hormigas.security.dto.usuario.CreateUsuarioDTO;
+import com.example.hormigas.security.dto.usuario.UsuarioResponseDTO;
+import com.example.hormigas.security.dto.usuario.UsuarioUpdateDTO;
 import com.example.hormigas.security.entity.Usuario;
 import com.example.hormigas.security.mapper.UsuarioMapper;
 import com.example.hormigas.security.repository.UsuarioRepository;
@@ -40,7 +43,7 @@ public class UsuarioService implements UserDetailsService {
     }
 
     // Crear usuario
-    public LoginResponseDTO nuevoUsuario(NuevoUsuarioDto dto) {
+    public UsuarioResponseDTO nuevoUsuario(CreateUsuarioDTO dto) {
         if (usuarioRepository.findByCorreo(dto.correo()).isPresent()) {
             throw new IllegalArgumentException("Correo ya registrado");
         }
@@ -64,7 +67,7 @@ public class UsuarioService implements UserDetailsService {
     }
 
     // Actualizar usuario
-    public LoginResponseDTO actualizarUsuario (UsuarioModificadoDTO dto) {
+    public UsuarioResponseDTO actualizarUsuario (UsuarioUpdateDTO dto) {
         //Usuario usuario = authService.getUsuarioLogueado();
         Usuario usuario = usuarioRepository.findById(1L)
                 .orElseThrow(() -> new RuntimeException("Pruebas"));
@@ -80,10 +83,10 @@ public class UsuarioService implements UserDetailsService {
 
         }
 
-        if (dto.passwordHash() != null && !dto.passwordHash().isBlank()) {
+        if (dto.password() != null && !dto.password().isBlank()) {
 
         }
-        return new LoginResponseDTO(1L, "Prueba", "Pruebas", 1L);
+        return new UsuarioResponseDTO(1L, "Prueba", "Pruebas", 1L);
     }
 
     // Eliminar usuario

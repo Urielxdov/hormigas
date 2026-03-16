@@ -20,7 +20,7 @@ public class EmpresaController {
         this.empresaService = empresaService;
     }
 
-    @PostMapping("create")
+    @PostMapping("/create")
     public ResponseEntity<EmpresaResponseDTO> crear (
             @RequestBody EmpresaResponseDTO dto
             ) {

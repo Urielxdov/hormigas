@@ -7,7 +7,7 @@ import jakarta.persistence.*;
  * Usuarios y sucursales
  */
 @Entity
-@Table(name = "permiso")
+@Table(name = "modulo")
 public class Modulo {
 
     @Id

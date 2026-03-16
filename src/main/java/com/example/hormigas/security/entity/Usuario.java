@@ -1,9 +1,11 @@
 package com.example.hormigas.security.entity;
 
 import com.example.hormigas.empresa.entity.Empresa;
+import com.example.hormigas.security.entity.rol.Rol;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
@@ -37,17 +39,29 @@ public class Usuario implements UserDetails {
     private String passwordHash;
 
     @Column(nullable = false)
-    private boolean activo;
+    @Builder.Default
+    private boolean activo = true;
 
     private LocalDateTime fechaCreacion;
 
     private LocalDateTime ultimoAcceso;
 
+    // Esto crea la tabla relacional
+    @ManyToMany
+    @JoinTable(
+            name = "usuario_rol",
+            joinColumns = @JoinColumn(name = "usuario_id"),
+            inverseJoinColumns = @JoinColumn(name = "rol_id")
+    )
+    private List<Rol> roles;
+
     // ===== Métodos de UserDetails =====
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(); // Aquí puedes agregar roles más adelante
+        return roles.stream()
+                .map(rol -> new SimpleGrantedAuthority(rol.getNombre()))
+                .toList();
     }
 
     @Override

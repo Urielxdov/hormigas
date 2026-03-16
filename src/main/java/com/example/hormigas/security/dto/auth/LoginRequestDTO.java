@@ -1,4 +1,4 @@
-package com.example.hormigas.security.dto.usuario;
+package com.example.hormigas.security.dto.auth;
 
 public record LoginRequestDTO (
         String email,

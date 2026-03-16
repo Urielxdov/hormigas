@@ -1,7 +1,7 @@
 package com.example.hormigas.security.service.interfaces;
 
 import com.example.hormigas.security.dto.usuario.CreateUsuarioDTO;
-import com.example.hormigas.security.dto.usuario.LoginRequestDTO;
+import com.example.hormigas.security.dto.auth.LoginRequestDTO;
 import com.example.hormigas.security.entity.Usuario;
 
 public interface AuthService {

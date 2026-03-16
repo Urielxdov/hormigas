@@ -1,12 +1,14 @@
 package com.example.hormigas.security.service;
 
 import com.example.hormigas.security.entity.Usuario;
+import com.example.hormigas.security.repository.UsuarioRepository;
 import com.example.hormigas.security.service.interfaces.TokenService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
@@ -27,32 +29,42 @@ public class TokenServiceImpl implements TokenService {
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
 
-    public TokenServiceImpl(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder) {
+    private final UsuarioRepository usuarioRepository;
+
+    public TokenServiceImpl(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder, UsuarioRepository usuarioRepository) {
         this.jwtDecoder = jwtDecoder;
         this.jwtEncoder = jwtEncoder;
+        this.usuarioRepository = usuarioRepository;
     }
 
 
     @Override
     public String generateToken(Authentication authentication) {
         Instant now = Instant.now();
+
+        // Obtienes el username (correo) desde Spring Security UserDetails
+        String correo = authentication.getName(); // equivalente a authentication.getPrincipal().getUsername()
+
+        // Si necesitas info adicional de la entidad Usuario, la buscas en el repo
+        Usuario usuario = usuarioRepository.findByCorreo(correo)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+
         String scope = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(" "));
 
-        Usuario currentUser = (Usuario) authentication.getPrincipal();
-        // Representa los claims del token
-        JwtClaimsSet claims = JwtClaimsSet.builder() // Permite añadir los claims
-                .subject(currentUser.getCorreo()) // Los claims guardan info
-                .issuedAt(now) // Aqui se guarda el correo y la fecha de expiracion
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .subject(usuario.getCorreo())
+                .issuedAt(now)
                 .expiresAt(now.plus(expiration, ChronoUnit.MINUTES))
+                .claim("roles", scope)
+                .claim("id", usuario.getId())        // ejemplo: info extra
+                .claim("empresaId", usuario.getEmpresa().getId()) // info de empresa
                 .build();
-        // Reperesenta los parametros del token
-        // Se guarda el algoritmo de firma y los claims
+
         var jwtEncoderParameters = JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims);
         return this.jwtEncoder.encode(jwtEncoderParameters).getTokenValue();
     }
-
     @Override
     public String getUserFromToken(String token) {
         Jwt jwtToken = jwtDecoder.decode(token);

@@ -1,15 +1,18 @@
 package com.example.hormigas.security.service;
 
 import com.example.hormigas.security.dto.usuario.CreateUsuarioDTO;
-import com.example.hormigas.security.dto.usuario.LoginRequestDTO;
+import com.example.hormigas.security.dto.auth.LoginRequestDTO;
 import com.example.hormigas.security.entity.Usuario;
 import com.example.hormigas.security.mapper.AuthMapper;
 import com.example.hormigas.security.repository.UsuarioRepository;
 import com.example.hormigas.security.service.interfaces.AuthService;
+import com.example.hormigas.security.service.interfaces.TokenService;
 import jakarta.persistence.EntityNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderNotFoundException;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,27 +22,27 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AuthServiceImpl implements AuthService, UserDetailsService {
+@Primary
+public class AuthServiceImpl implements AuthService {
     private static final Logger logger = LogManager.getLogger(AuthServiceImpl.class);
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationConfiguration authenticationConfiguration;
+    private final TokenService tokenService;
 
     public AuthServiceImpl(
             UsuarioRepository usuarioRepository,
             PasswordEncoder passwordEncoder,
-            AuthenticationConfiguration authenticationConfiguration
+            AuthenticationConfiguration authenticationConfiguration,
+            TokenService tokenService
     ){
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationConfiguration = authenticationConfiguration;
+        this.tokenService = tokenService;
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return null;
-    }
 
     @Override
     public String login(LoginRequestDTO loginRequestDTO) {
@@ -47,18 +50,21 @@ public class AuthServiceImpl implements AuthService, UserDetailsService {
             final AuthenticationManager authenticationManager = authenticationConfiguration.getAuthenticationManager();
             final Authentication authRequest = AuthMapper.fromDto(loginRequestDTO);
             final Authentication authentication = authenticationManager.authenticate(authRequest);
-            return
+            return tokenService.generateToken(authentication);
+        } catch (Exception e) {
+            logger.error("[USER] : Error mientras se intentaba logear", e);
+            throw new ProviderNotFoundException("Error mientras se trataba de logear");
         }
     }
 
     @Override
     public boolean validateToken(String token) {
-        return false;
+        return tokenService.validateToken(token);
     }
 
     @Override
     public String getUserFromToken(String token) {
-        return "";
+        return tokenService.getUserFromToken(token);
     }
 
     @Override
