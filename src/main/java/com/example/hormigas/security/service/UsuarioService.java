@@ -2,9 +2,6 @@ package com.example.hormigas.security.service;
 
 import com.example.hormigas.empresa.entity.Empresa;
 import com.example.hormigas.empresa.repository.EmpresaRepository;
-import com.example.hormigas.security.dto.usuario.LoginResponseDTO;
-import com.example.hormigas.security.dto.usuario.NuevoUsuarioDto;
-import com.example.hormigas.security.dto.usuario.UsuarioModificadoDTO;
 import com.example.hormigas.security.entity.Usuario;
 import com.example.hormigas.security.mapper.UsuarioMapper;
 import com.example.hormigas.security.repository.UsuarioRepository;
@@ -21,13 +18,13 @@ public class UsuarioService implements UserDetailsService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmpresaRepository empresaRepository;
-    private final AuthService authService;
+    //private final AuthService authService;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, EmpresaRepository empresaRepository, AuthService authService) {
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, EmpresaRepository empresaRepository) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.empresaRepository = empresaRepository;
-        this.authService = authService;
+        //this.authService = authService;
     }
     @Override
     public UserDetails loadUserByUsername(String correo) throws UsernameNotFoundException {
@@ -49,10 +46,11 @@ public class UsuarioService implements UserDetailsService {
         }
 
         // Usuario ya logeado
-        Usuario creador = authService.getUsuarioLogueado();
+
 
         // Extraccion de la empresa de usuario
-        Empresa empresa = creador.getEmpresa();
+        Empresa empresa = empresaRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("No jalo"));
 
         Usuario usuario = new Usuario();
         usuario.setCorreo(dto.correo());
@@ -67,15 +65,16 @@ public class UsuarioService implements UserDetailsService {
 
     // Actualizar usuario
     public LoginResponseDTO actualizarUsuario (UsuarioModificadoDTO dto) {
-        Usuario usuario = authService.getUsuarioLogueado();
-
+        //Usuario usuario = authService.getUsuarioLogueado();
+        Usuario usuario = usuarioRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("Pruebas"));
         if (dto.nombre() != null && !dto.nombre().isBlank()) {
             usuario.setNombre(dto.nombre());
         }
 
         if (dto.correo() != null && !dto.correo().isBlank()) {
             // Verificamos que no exista otro usuario con el mismo correo
-            usuarioRepository.findByCorreo(dto.getCorreo())
+            usuarioRepository.findByCorreo(dto.correo())
                     .filter(u -> !u.getId().equals(usuario.getId()))
                     .ifPresent(u -> { throw new IllegalArgumentException("Correo ya registrado"); });
 
@@ -84,6 +83,7 @@ public class UsuarioService implements UserDetailsService {
         if (dto.passwordHash() != null && !dto.passwordHash().isBlank()) {
 
         }
+        return new LoginResponseDTO(1L, "Prueba", "Pruebas", 1L);
     }
 
     // Eliminar usuario

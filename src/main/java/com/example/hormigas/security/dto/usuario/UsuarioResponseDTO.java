@@ -1,9 +1,8 @@
 package com.example.hormigas.security.dto.usuario;
 
-public record LoginResponseDTO(
+public record UsuarioResponseDTO (
         Long id,
-        String nombre,
+        String name,
         String correo,
         Long empresaId
-) {
-}
+) {}

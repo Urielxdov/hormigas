@@ -2,12 +2,23 @@ package com.example.hormigas.security.entity;
 
 import com.example.hormigas.empresa.entity.Empresa;
 import jakarta.persistence.*;
+import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "usuario")
-public class Usuario {
+public class Usuario implements UserDetails {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,61 +43,40 @@ public class Usuario {
 
     private LocalDateTime ultimoAcceso;
 
-    public Usuario () {}
+    // ===== Métodos de UserDetails =====
 
-    public Long getId() {
-        return id;
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(); // Aquí puedes agregar roles más adelante
     }
 
-    public Empresa getEmpresa() {
-        return empresa;
-    }
-
-    public LocalDateTime getFechaCreacion() {
-        return fechaCreacion;
-    }
-
-    public boolean isActivo() {
-        return activo;
-    }
-
-    public String getPasswordHash() {
+    @Override
+    public String getPassword() {
         return passwordHash;
     }
 
-    public String getCorreo() {
+    @Override
+    public String getUsername() {
         return correo;
     }
 
-    public String getNombre() {
-        return nombre;
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
     }
 
-    public LocalDateTime getUltimoAcceso() {
-        return ultimoAcceso;
+    @Override
+    public boolean isAccountNonLocked() {
+        return activo;
     }
 
-    public void setUltimoAcceso(LocalDateTime ultimoAcceso) {
-        this.ultimoAcceso = ultimoAcceso;
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
     }
 
-    public void setEmpresa(Empresa empresa) {
-        this.empresa = empresa;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public void setCorreo(String correo) {
-        this.correo = correo;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public void setActivo(boolean activo) {
-        this.activo = activo;
+    @Override
+    public boolean isEnabled() {
+        return activo;
     }
 }
