@@ -10,7 +10,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -47,13 +49,13 @@ public class Usuario implements UserDetails {
     private LocalDateTime ultimoAcceso;
 
     // Esto crea la tabla relacional
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "usuario_rol",
             joinColumns = @JoinColumn(name = "usuario_id"),
             inverseJoinColumns = @JoinColumn(name = "rol_id")
     )
-    private List<Rol> roles;
+    private Set<Rol> roles = new HashSet<>();
 
     // ===== Métodos de UserDetails =====
 
@@ -92,5 +94,9 @@ public class Usuario implements UserDetails {
     @Override
     public boolean isEnabled() {
         return activo;
+    }
+
+    public void addRol(Rol rol) {
+        this.roles.add(rol);
     }
 }

@@ -1,9 +1,16 @@
 package com.example.hormigas.security.entity.permiso;
 
 import jakarta.persistence.*;
+import lombok.*;
+
 
 @Entity
 @Table(name = "permiso")
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor // obligatorio para JPA
+@AllArgsConstructor
 public class Permiso {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,5 +26,4 @@ public class Permiso {
     @Column(nullable = false)
     private String nombre;
 
-    public Permiso () {}
 }

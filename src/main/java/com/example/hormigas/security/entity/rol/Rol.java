@@ -5,6 +5,9 @@ import com.example.hormigas.security.entity.permiso.Permiso;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -23,17 +26,33 @@ public class Rol {
     private String nombre;
 
     // Tabla relacional
-    @ManyToOne
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "rol_permiso",
             joinColumns = @JoinColumn(name = "rol_id"),
             inverseJoinColumns = @JoinColumn(name = "permiso_id")
     )
-    private Permiso permiso;
+    private Set<Permiso> permiso = new HashSet<>();
 
     @Column(nullable = false)
     private String descripcion;
 
     @Column(nullable = false)
     private Boolean activo = true;
+
+    public void setPermisos(Set<Permiso> permisos) {
+        this.permiso = permisos;
+    }
+
+    public void addPermiso(Permiso permiso) {
+        this.permiso.add(permiso);
+    }
+
+    @Builder
+    public Rol(String nombre, String descripcion, Boolean activo, Set<Permiso> permiso) {
+        this.nombre = nombre;
+        this.permiso = permiso;
+        this.descripcion = descripcion;
+        this.activo = activo;
+    }
 }

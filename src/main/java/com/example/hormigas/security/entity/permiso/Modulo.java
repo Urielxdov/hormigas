@@ -1,6 +1,7 @@
 package com.example.hormigas.security.entity.permiso;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 /**
  * De momento solo abra Productos, Movimientos
@@ -8,6 +9,11 @@ import jakarta.persistence.*;
  */
 @Entity
 @Table(name = "modulo")
+@Getter
+@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Modulo {
 
     @Id
@@ -17,5 +23,5 @@ public class Modulo {
     @Column(nullable = false, unique = true)
     private String nombre;
 
-    public Modulo() {}
+
 }
