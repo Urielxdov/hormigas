@@ -8,6 +8,7 @@ import com.example.hormigas.empresa.repository.EmpresaRepository;
 import com.example.hormigas.security.application.mapper.UsuarioMapper;
 import com.example.hormigas.security.domain.Usuario;
 import com.example.hormigas.security.domain.services.UsuarioService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -96,6 +97,7 @@ public class EmpresaService {
     }
 
     // Eliminar empresa
+    // Exclusivo de superadmin
     public void deleteEmpresa (Long id) {
         Empresa empresa = empresaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
@@ -105,11 +107,50 @@ public class EmpresaService {
         empresaRepository.save(empresa);
     }
 
-    // Ver detalle de empresa
-    public EmpresaResponseDTO getEmpresaDetails(Long id) {
-        Empresa empresa = empresaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+    public void deleteEmpresa () {
+        Usuario admin = usuarioService.getUsuarioLogueado();
+        Empresa empresa = admin.getEmpresa();
 
+        empresa.setActivo(false);
+        empresaRepository.save(empresa);
+    }
+
+    public EmpresaResponseDTO activate (Long id) {
+        Empresa empresa = empresaRepository.findById(id)
+                .orElseThrow(() -> {
+                    logger.error("[SYS] : Super admin try activate to \n" +
+                            "non-existent company. Id : {}", id);
+                    return new EntityNotFoundException("No se encontro la empresa");
+                });
+
+        if (empresa.isActivo()) {
+            logger.error("[SYS] : Super admin try activate to active company. Id : {}", id);
+            throw new IllegalArgumentException("La empresa ya se encuentra activa");
+        }
+        empresa.setActivo(true);
         return EmpresaMapper.toResponseEmpresa(empresa);
+    }
+
+    public EmpresaResponseDTO activate (String rfc) {
+        Empresa empresa = empresaRepository.findByRfc(rfc)
+                .orElseThrow(() -> {
+                    logger.error("[SYS] : Super admin try activate to \n" +
+                            "non-existent company. RFC : {}", rfc);
+                    return new EntityNotFoundException("No se encontro la empresa");
+                });
+
+        if (empresa.isActivo()) {
+            logger.error("[SYS] : Super admin try activate to active company. RFC : {}", rfc);
+            throw new IllegalArgumentException("La empresa ya se encuentra activa");
+        }
+        empresa.setActivo(true);
+        return EmpresaMapper.toResponseEmpresa(empresa);
+    }
+
+    // Ver detalle de empresa
+    public EmpresaResponseDTO getEmpresaDetails() {
+        Usuario user = usuarioService.getUsuarioLogueado();
+
+        return EmpresaMapper.toResponseEmpresa(user.getEmpresa());
     }
 }

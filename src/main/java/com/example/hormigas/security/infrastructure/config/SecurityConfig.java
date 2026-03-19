@@ -37,10 +37,8 @@ public class SecurityConfig {
                         .requestMatchers(LOGIN_URL_MATCHER).permitAll()
                         .requestMatchers("/api/empresa/create").hasRole(Role.SUPER_ADMIN.toString())
                         .requestMatchers("/api/empresa/**").hasRole(Role.ADMIN.toString())
-                        // temporales
-                        //.requestMatchers("/api/empresa/create").permitAll()
-                        //.requestMatchers("/api/**").permitAll()
-                        //.anyRequest().permitAll()
+                        .requestMatchers("/api/empresa/delete").hasRole(Role.ADMIN.toString())
+                        .requestMatchers("/api/empresa/delete/*").hasRole(Role.SUPER_ADMIN.toString())
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

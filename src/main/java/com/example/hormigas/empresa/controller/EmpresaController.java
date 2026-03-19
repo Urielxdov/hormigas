@@ -32,16 +32,36 @@ public class EmpresaController {
                 .body(empresa);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
+    // Exclusivo de super admin
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         empresaService.deleteEmpresa(id);
 
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<EmpresaResponseDTO> obtener(@PathVariable Long id) {
-        EmpresaResponseDTO empresa = empresaService.getEmpresaDetails(id);
+    @DeleteMapping("/delete")
+    public ResponseEntity<Void> eliminar() {
+        empresaService.deleteEmpresa();
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/activate")
+    // Exclusivo de super admin
+    public ResponseEntity<EmpresaResponseDTO> activar(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(empresaService.activate(id));
+    }
+
+    @PatchMapping("/{rfc}/activate")
+    // Exclusivo de super admin
+    public ResponseEntity<EmpresaResponseDTO> activar(@PathVariable String rfc) {
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(empresaService.activate(rfc));
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<EmpresaResponseDTO> obtener() {
+        EmpresaResponseDTO empresa = empresaService.getEmpresaDetails();
 
         return ResponseEntity.ok(empresa);
     }
