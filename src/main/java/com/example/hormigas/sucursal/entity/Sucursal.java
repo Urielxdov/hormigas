@@ -12,11 +12,17 @@ public class Sucursal {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "empresa_id")
+    @JoinColumn(
+            name = "empresa_id",
+            foreignKey = @ForeignKey(name = "fk_sucursal_empresa")
+    )
     private Empresa empresa;
 
     @ManyToOne(optional = true)
-    @JoinColumn(name = "encargado")
+    @JoinColumn(
+            name = "encargado",
+            foreignKey = @ForeignKey(name = "fk_sucursal_usuario")
+    )
     private Usuario usuario;
 
     @Column(nullable = false)

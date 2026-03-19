@@ -27,11 +27,17 @@ public class Inventario {
     private Long id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "sucursal_id")
+    @JoinColumn(
+            name = "sucursal_id",
+            foreignKey =  @ForeignKey(name = "fk_inventario_sucursal")
+    )
     private Sucursal sucursal;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "producto_id")
+    @JoinColumn(
+            name = "producto_id",
+            foreignKey = @ForeignKey(name = "fk_inventario_producto")
+    )
     private Producto producto;
 
     private int stockActual;

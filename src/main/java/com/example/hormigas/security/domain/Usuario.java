@@ -26,7 +26,10 @@ public class Usuario implements UserDetails {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "empresa_id")
+    @JoinColumn(
+            name = "empresa_id",
+            foreignKey = @ForeignKey(name = "fk_usuario_empresa")
+    )
     private Empresa empresa;
 
     @Column(nullable = false)
@@ -47,20 +50,31 @@ public class Usuario implements UserDetails {
     private LocalDateTime ultimoAcceso;
 
     // Esto crea la tabla relacional
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "usuario_rol",
-            joinColumns = @JoinColumn(name = "usuario_id"),
-            inverseJoinColumns = @JoinColumn(name = "rol_id")
+    // Para el mvp este apartado sera eliminado temporalmente
+//    @ManyToMany(fetch = FetchType.EAGER)
+//    @JoinTable(
+//            name = "usuario_rol",
+//            joinColumns = @JoinColumn(name = "usuario_id"),
+//            inverseJoinColumns = @JoinColumn(name = "rol_id")
+//    )
+    //private Set<Rol> roles = new HashSet<>();
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "usuario_roles",
+            joinColumns = @JoinColumn(name = "usuario_id")
     )
-    private Set<Rol> roles = new HashSet<>();
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rol", nullable = false)
+    @Builder.Default
+    private Set<Role> roles = new HashSet<>();
 
     // ===== Métodos de UserDetails =====
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()
-                .map(rol -> new SimpleGrantedAuthority(rol.getNombre()))
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
                 .toList();
     }
 
@@ -94,7 +108,7 @@ public class Usuario implements UserDetails {
         return activo;
     }
 
-    public void addRol(Rol rol) {
+    public void addRol(Role rol) {
         this.roles.add(rol);
     }
 }

@@ -9,7 +9,10 @@ public class Categoria {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "empresa_id")
+    @JoinColumn(
+            name = "empresa_id",
+            foreignKey = @ForeignKey(name = "fk_categoria_empresa")
+    )
     private Empresa empresa;
 
     @Column(nullable = false)

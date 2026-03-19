@@ -18,10 +18,18 @@ public class Producto {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "empresa_id", nullable = false)
+    @JoinColumn(
+            name = "empresa_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_producto_empresa")
+    )
     private Empresa empresa;
 
     @ManyToOne(optional = true)
+    @JoinColumn(
+            name = "categoria_id",
+            foreignKey = @ForeignKey(name = "fk_producto_categoria")
+    )
     private Categoria categoria;
 
     @Column(nullable = false)

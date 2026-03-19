@@ -1,36 +1,42 @@
 package com.example.hormigas.empresa.service;
 
+import com.example.hormigas.empresa.dto.EmpresaCreateDTO;
 import com.example.hormigas.empresa.dto.EmpresaResponseDTO;
 import com.example.hormigas.empresa.dto.EmpresaUpdateDTO;
 import com.example.hormigas.empresa.entity.Empresa;
 import com.example.hormigas.empresa.exception.EmpresaDuplicadaException;
 import com.example.hormigas.empresa.mapper.EmpresaMapper;
 import com.example.hormigas.empresa.repository.EmpresaRepository;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 @Service
 public class EmpresaService {
+    private final static Logger logger = LogManager.getLogger(EmpresaService.class);
     private final EmpresaRepository empresaRepository;
 
     public EmpresaService(EmpresaRepository empresaRepository) {
         this.empresaRepository = empresaRepository;
     }
     // Crear empresa
-    public EmpresaResponseDTO createEmpresa(EmpresaResponseDTO dto) {
+    public EmpresaResponseDTO createEmpresa(EmpresaCreateDTO dto) {
         // Validamos el rfc
-        if (empresaRepository.findByRfc(dto.getRfc()).isPresent()) {
+        if (empresaRepository.findByRfc(dto.rfc()).isPresent()) {
+            logger.error("[COMPANY] : The company with rfc {} already exist", dto.rfc());
             throw new EmpresaDuplicadaException("Ya existe una empresa con este RFC");
         }
 
-        if (empresaRepository.findByNombre(dto.getNombre()).isPresent()) {
+        if (empresaRepository.findByNombre(dto.nombre()).isPresent()) {
+            logger.error("[COMPANY] : The company with name {} already exist", dto.nombre());
             throw new EmpresaDuplicadaException("Nombre duplicado");
         }
 
         Empresa empresa = new Empresa(
-                dto.getNombre(),
-                dto.getRfc(),
-                dto.getDireccion(),
-                dto.getTelefono()
+                dto.nombre(),
+                dto.rfc(),
+                dto.direccion(),
+                dto.telefono()
         );
 
         empresa = empresaRepository.save(empresa);
@@ -44,35 +50,35 @@ public class EmpresaService {
         Empresa empresa = empresaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
 
-        if (dto.getNombre() != null &&
-                !dto.getNombre().equals(empresa.getNombre())) {
+        if (dto.nombre() != null &&
+                !dto.nombre().equals(empresa.getNombre())) {
 
-            if (empresaRepository.existsByNombre(dto.getNombre())) {
+            if (empresaRepository.existsByNombre(dto.nombre())) {
                 throw new EmpresaDuplicadaException("El nombre de la empresa ya existe");
             }
 
-            empresa.setNombre(dto.getNombre());
+            empresa.setNombre(dto.nombre());
         }
 
-        if (dto.getRfc() != null &&
-                !dto.getRfc().equals(empresa.getRfc())) {
+        if (dto.rfc() != null &&
+                !dto.rfc().equals(empresa.getRfc())) {
 
-            if (empresaRepository.existsByRfc(dto.getRfc())) {
+            if (empresaRepository.existsByRfc(dto.rfc())) {
                 throw new EmpresaDuplicadaException("RFC ya existe");
             }
 
-            empresa.setRfc(dto.getRfc());
+            empresa.setRfc(dto.rfc());
         }
 
-        if (dto.getDireccion() != null) {
-            empresa.setDireccion(dto.getDireccion());
+        if (dto.direccion() != null) {
+            empresa.setDireccion(dto.direccion());
         }
 
-        if (dto.getTelefono() != null) {
-            empresa.setTelefono(dto.getTelefono());
+        if (dto.telefono() != null) {
+            empresa.setTelefono(dto.telefono());
         }
 
-        empresa.setActivo(dto.isActivo());
+        empresa.setActivo(true);
 
         empresa = empresaRepository.save(empresa);
 

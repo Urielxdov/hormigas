@@ -1,5 +1,6 @@
 package com.example.hormigas.empresa.controller;
 
+import com.example.hormigas.empresa.dto.EmpresaCreateDTO;
 import com.example.hormigas.empresa.dto.EmpresaResponseDTO;
 import com.example.hormigas.empresa.dto.EmpresaUpdateDTO;
 import com.example.hormigas.empresa.exception.EmpresaDuplicadaException;
@@ -22,7 +23,7 @@ public class EmpresaController {
 
     @PostMapping("/create")
     public ResponseEntity<EmpresaResponseDTO> crear (
-            @RequestBody EmpresaResponseDTO dto
+            @RequestBody EmpresaCreateDTO dto
             ) {
         EmpresaResponseDTO empresa = empresaService.createEmpresa(dto);
         return ResponseEntity

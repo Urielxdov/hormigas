@@ -1,5 +1,6 @@
 package com.example.hormigas.security.application.services;
 
+import com.example.hormigas.security.domain.Role;
 import com.example.hormigas.security.domain.Usuario;
 import com.example.hormigas.security.domain.Rol;
 import com.example.hormigas.security.domain.repository.UsuarioRepository;
@@ -55,7 +56,7 @@ public class TokenServiceImpl implements TokenService {
 //                .collect(Collectors.joining(" "));
 
         String roles = usuario.getRoles().stream()
-                .map(Rol::getNombre)
+                .map(Role::name)
                 .map(rol -> rol.startsWith("ROLE_") ? rol : "ROLE_" + rol)
                 .collect(Collectors.joining(" "));
 
@@ -74,6 +75,7 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public String getUserFromToken(String token) {
         Jwt jwtToken = jwtDecoder.decode(token);
+        logger.info("[USER] : email from user {}", jwtToken.getSubject());
         return jwtToken.getSubject();
     }
 
@@ -83,7 +85,7 @@ public class TokenServiceImpl implements TokenService {
             jwtDecoder.decode(token);
             return true;
         } catch (Exception exception) {
-            logger.error("[USER] : Weeoe al tratar de validar el token", exception);
+            logger.error("[USER] : Error al tratar de validar el token", exception);
             throw new BadJwtException("Error mientras se trataba de validar el token");
         }
     }

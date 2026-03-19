@@ -38,7 +38,7 @@ public class Empresa {
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaCreacion = LocalDateTime.now();
 
     @Column(nullable = false)
     private boolean activo = true;

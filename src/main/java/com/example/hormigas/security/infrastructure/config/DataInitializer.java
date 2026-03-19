@@ -2,6 +2,7 @@ package com.example.hormigas.security.infrastructure.config;
 
 import com.example.hormigas.empresa.entity.Empresa;
 import com.example.hormigas.empresa.repository.EmpresaRepository;
+import com.example.hormigas.security.domain.Role;
 import com.example.hormigas.security.domain.Usuario;
 import com.example.hormigas.security.domain.permiso.Modulo;
 import com.example.hormigas.security.domain.permiso.Permiso;
@@ -131,7 +132,7 @@ public class DataInitializer implements CommandLineRunner {
             u.setPasswordHash(passwordEncoder.encode(pass));
             u.setActivo(true);
             u.setEmpresa(empresa);
-            u.addRol(rol);
+            u.addRol(Role.ADMIN);
             usuarioRepository.save(u);
             System.out.println("Usuario creado: " + correo);
         }

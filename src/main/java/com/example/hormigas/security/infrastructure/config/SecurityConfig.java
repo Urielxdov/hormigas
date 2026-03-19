@@ -34,6 +34,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Solo el login se abre
                         .requestMatchers(LOGIN_URL_MATCHER).permitAll()
+                        .requestMatchers("/api/empresa/create").hasRole("ADMIN")
                         // temporales
                         //.requestMatchers("/api/empresa/create").permitAll()
                         //.requestMatchers("/api/**").permitAll()
@@ -46,7 +47,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
 

@@ -18,6 +18,10 @@ public class MotivoMovimiento {
     private TipoMovimiento tipoMovimiento;
 
     @ManyToOne
+    @JoinColumn(
+            name = "empresa_id",
+            foreignKey = @ForeignKey(name = "fk_motivo_empresa")
+    )
     private Empresa empresa;
 
     private boolean activo = true;

@@ -44,7 +44,7 @@ public class UsuarioService implements UserDetailsService {
                 .username(usuario.getCorreo())
                 .password(usuario.getPasswordHash())
                 .disabled(!usuario.isActivo())
-                .roles("USER") // despues lo debemos cambiar a los que se usan aqui
+                .authorities(usuario.getAuthorities()) // despues lo debemos cambiar a los que se usan aqui
                 .build();
     }
 

@@ -5,12 +5,12 @@ import com.example.hormigas.empresa.entity.Empresa;
 
 public class EmpresaMapper {
     public static EmpresaResponseDTO toResponseEmpresa(Empresa empresa) {
-        EmpresaResponseDTO nueva = new EmpresaResponseDTO();
-        nueva.setId(empresa.getId());
-        nueva.setNombre(empresa.getNombre());
-        nueva.setDireccion(empresa.getDireccion());
-        nueva.setRfc(empresa.getRfc());
-        nueva.setTelefono(empresa.getTelefono());
-        return nueva;
+        return new EmpresaResponseDTO(
+                empresa.getId(),
+                empresa.getNombre(),
+                empresa.getDireccion(),
+                empresa.getRfc(),
+                empresa.getTelefono()
+        );
     }
 }

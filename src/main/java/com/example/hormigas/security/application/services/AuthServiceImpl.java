@@ -51,6 +51,7 @@ public class AuthServiceImpl implements AuthService {
             final Authentication authRequest = AuthMapper.fromDto(loginRequestDTO);
             final Authentication authentication = authenticationManager.authenticate(authRequest);
             usuarioService.updateLastLogin(authentication.getName());
+            logger.info("[USER] : Usuario loggeado {}", authentication.getName());
             return tokenService.generateToken(authentication);
         } catch (Exception e) {
             logger.error("[USER] : Error mientras se intentaba logear", e);

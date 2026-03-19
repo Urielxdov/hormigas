@@ -24,16 +24,31 @@ public class Movimiento {
     private Long id;
 
     @ManyToOne
+    @JoinColumn(
+            name = "producto_id",
+            foreignKey = @ForeignKey(name = "fk_movimiento_producto")
+    )
     private Producto producto;
 
     @ManyToOne
+    @JoinColumn(
+            name = "sucursal_id",
+            foreignKey = @ForeignKey(name = "fk_movimiento_sucursal")
+    )
     private Sucursal sucursal;
 
     @ManyToOne
+    @JoinColumn(
+            name = "usuario_id",
+            foreignKey = @ForeignKey(name = "usuario_id")
+    )
     private Usuario usuario;
 
     @ManyToOne
-    @JoinColumn(name = "motivo")
+    @JoinColumn(
+            name = "motivo_id",
+            foreignKey = @ForeignKey(name = "fk_movimiento_motivo")
+    )
     private MotivoMovimiento motivo;
 
     @Enumerated(EnumType.STRING)
