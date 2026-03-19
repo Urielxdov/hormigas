@@ -132,7 +132,7 @@ public class DataInitializer implements CommandLineRunner {
             u.setPasswordHash(passwordEncoder.encode(pass));
             u.setActivo(true);
             u.setEmpresa(empresa);
-            u.addRol(Role.ADMIN);
+            u.addRol(Role.SUPER_ADMIN);
             usuarioRepository.save(u);
             System.out.println("Usuario creado: " + correo);
         }

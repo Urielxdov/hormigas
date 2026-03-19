@@ -1,5 +1,6 @@
 package com.example.hormigas.empresa.controller;
 
+import com.example.hormigas.empresa.dto.EmpresaConAdminCreateDTO;
 import com.example.hormigas.empresa.dto.EmpresaCreateDTO;
 import com.example.hormigas.empresa.dto.EmpresaResponseDTO;
 import com.example.hormigas.empresa.dto.EmpresaUpdateDTO;
@@ -23,7 +24,7 @@ public class EmpresaController {
 
     @PostMapping("/create")
     public ResponseEntity<EmpresaResponseDTO> crear (
-            @RequestBody EmpresaCreateDTO dto
+            @RequestBody EmpresaConAdminCreateDTO dto
             ) {
         EmpresaResponseDTO empresa = empresaService.createEmpresa(dto);
         return ResponseEntity
@@ -45,12 +46,11 @@ public class EmpresaController {
         return ResponseEntity.ok(empresa);
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/update")
     public ResponseEntity<EmpresaResponseDTO> actualizarEmpresa(
-            @PathVariable Long id,
             @RequestBody EmpresaUpdateDTO dto
             ) {
-        EmpresaResponseDTO empresa = empresaService.updateEmpresa(id, dto);
+        EmpresaResponseDTO empresa = empresaService.updateEmpresa(dto);
 
         return ResponseEntity.ok(empresa);
     }

@@ -1,12 +1,14 @@
 package com.example.hormigas.empresa.service;
 
-import com.example.hormigas.empresa.dto.EmpresaCreateDTO;
-import com.example.hormigas.empresa.dto.EmpresaResponseDTO;
-import com.example.hormigas.empresa.dto.EmpresaUpdateDTO;
+import com.example.hormigas.empresa.dto.*;
 import com.example.hormigas.empresa.entity.Empresa;
 import com.example.hormigas.empresa.exception.EmpresaDuplicadaException;
 import com.example.hormigas.empresa.mapper.EmpresaMapper;
 import com.example.hormigas.empresa.repository.EmpresaRepository;
+import com.example.hormigas.security.application.mapper.UsuarioMapper;
+import com.example.hormigas.security.domain.Usuario;
+import com.example.hormigas.security.domain.services.UsuarioService;
+import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -15,46 +17,52 @@ import org.springframework.stereotype.Service;
 public class EmpresaService {
     private final static Logger logger = LogManager.getLogger(EmpresaService.class);
     private final EmpresaRepository empresaRepository;
+    private final UsuarioService usuarioService;
 
-    public EmpresaService(EmpresaRepository empresaRepository) {
+    public EmpresaService(EmpresaRepository empresaRepository, UsuarioService usuarioService) {
         this.empresaRepository = empresaRepository;
+        this.usuarioService = usuarioService;
     }
     // Crear empresa
-    public EmpresaResponseDTO createEmpresa(EmpresaCreateDTO dto) {
-        // Validamos el rfc
-        if (empresaRepository.findByRfc(dto.rfc()).isPresent()) {
-            logger.error("[COMPANY] : The company with rfc {} already exist", dto.rfc());
+    @Transactional
+    public EmpresaResponseDTO createEmpresa(EmpresaConAdminCreateDTO dto) {
+        EmpresaCreateDTO empresaDto = dto.empresa();
+        UsuarioEmpresaCreateDTO adminDto = dto.admin();
+
+        if (empresaRepository.findByRfc(empresaDto.rfc()).isPresent()) {
+            logger.error("[COMPANY]: The company with rfc {} already exist", empresaDto.rfc());
             throw new EmpresaDuplicadaException("Ya existe una empresa con este RFC");
         }
 
-        if (empresaRepository.findByNombre(dto.nombre()).isPresent()) {
-            logger.error("[COMPANY] : The company with name {} already exist", dto.nombre());
-            throw new EmpresaDuplicadaException("Nombre duplicado");
+        if (empresaRepository.findByNombre(empresaDto.nombre()).isPresent()) {
+            logger.error("[COMPANY] : The company with name {} already exist", empresaDto.nombre());
+            throw new EmpresaDuplicadaException("Ya existe una empresa con este nombre");
         }
 
-        Empresa empresa = new Empresa(
-                dto.nombre(),
-                dto.rfc(),
-                dto.direccion(),
-                dto.telefono()
-        );
+        Empresa nuevaEmpresa = new Empresa();
+        nuevaEmpresa.setNombre(empresaDto.nombre());
+        nuevaEmpresa.setRfc(empresaDto.rfc());
+        nuevaEmpresa.setDireccion(empresaDto.direccion());
+        nuevaEmpresa.setTelefono(empresaDto.telefono());
 
-        empresa = empresaRepository.save(empresa);
-        
+        Empresa empresa = empresaRepository.save(nuevaEmpresa);
+
+        usuarioService.nuevoUsuario(UsuarioMapper.toCreate(adminDto, empresa.getId()));
         return EmpresaMapper.toResponseEmpresa(empresa);
     }
 
     // Actualizar empresa
-    public EmpresaResponseDTO updateEmpresa(Long id, EmpresaUpdateDTO dto) {
-
-        Empresa empresa = empresaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+    // Debemos de proteger el endpoint para esto
+    public EmpresaResponseDTO updateEmpresa(EmpresaUpdateDTO dto) {
+        Usuario admin = usuarioService.getUsuarioLogueado();
+        Empresa empresa = admin.getEmpresa();
 
         if (dto.nombre() != null &&
                 !dto.nombre().equals(empresa.getNombre())) {
 
             if (empresaRepository.existsByNombre(dto.nombre())) {
-                throw new EmpresaDuplicadaException("El nombre de la empresa ya existe");
+                logger.error("[COMPANY] : The desired name already registered");
+                throw new EmpresaDuplicadaException("El nombre de la empresa ya esta registrado");
             }
 
             empresa.setNombre(dto.nombre());
@@ -64,7 +72,8 @@ public class EmpresaService {
                 !dto.rfc().equals(empresa.getRfc())) {
 
             if (empresaRepository.existsByRfc(dto.rfc())) {
-                throw new EmpresaDuplicadaException("RFC ya existe");
+                logger.error("[COMPANY] : The desired RFC already registered");
+                throw new EmpresaDuplicadaException("RFC ya esta registrado");
             }
 
             empresa.setRfc(dto.rfc());
@@ -81,6 +90,7 @@ public class EmpresaService {
         empresa.setActivo(true);
 
         empresa = empresaRepository.save(empresa);
+        logger.info("[COMPANY] : Company update {}", empresa.getId());
 
         return EmpresaMapper.toResponseEmpresa(empresa);
     }

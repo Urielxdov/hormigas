@@ -1,5 +1,6 @@
 package com.example.hormigas.security.infrastructure.config;
 
+import com.example.hormigas.security.domain.Role;
 import com.example.hormigas.security.infrastructure.filter.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,7 +35,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Solo el login se abre
                         .requestMatchers(LOGIN_URL_MATCHER).permitAll()
-                        .requestMatchers("/api/empresa/create").hasRole("ADMIN")
+                        .requestMatchers("/api/empresa/create").hasRole(Role.SUPER_ADMIN.toString())
+                        .requestMatchers("/api/empresa/**").hasRole(Role.ADMIN.toString())
                         // temporales
                         //.requestMatchers("/api/empresa/create").permitAll()
                         //.requestMatchers("/api/**").permitAll()

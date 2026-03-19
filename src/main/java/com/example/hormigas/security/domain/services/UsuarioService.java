@@ -1,6 +1,8 @@
 package com.example.hormigas.security.domain.services;
 
+import com.example.hormigas.empresa.entity.Empresa;
 import com.example.hormigas.empresa.repository.EmpresaRepository;
+import com.example.hormigas.security.domain.Role;
 import com.example.hormigas.security.infrastructure.dtos.CreateUsuarioDTO;
 import com.example.hormigas.security.infrastructure.dtos.UsuarioResponseDTO;
 import com.example.hormigas.security.infrastructure.dtos.UsuarioUpdateDTO;
@@ -51,21 +53,48 @@ public class UsuarioService implements UserDetailsService {
     // Crear usuario
     public UsuarioResponseDTO nuevoUsuario(CreateUsuarioDTO dto) {
         if (usuarioRepository.findByCorreo(dto.correo()).isPresent()) {
+            logger.error("[USER] : The email {} already exist", dto.correo());
             throw new IllegalArgumentException("Correo ya registrado");
         }
 
         // Usuario ya logeado
         Usuario usuarioActual = getUsuarioLogueado();
+        Empresa empresaDestino;
+        Role role;
+
+        if (tieneRol(usuarioActual, Role.SUPER_ADMIN)) {
+            if (dto.empresaId() == null) {
+                logger.error("[SYS] : The company is required for super_admin");
+                throw new IllegalArgumentException("La empresa es obligatoria para el superusuario");
+            }
+
+            empresaDestino = empresaRepository.findById(dto.empresaId())
+                    .orElseThrow(() -> {
+                        logger.error("[SYS] : The company the user wants to create does not exist");
+                        return new EntityNotFoundException("Empresa no encontrada");
+                    });
+            role = Role.ADMIN;
+            logger.info("[USER] : Admin user created");
+        } else {
+            empresaDestino = usuarioActual.getEmpresa();
+            role = Role.USER;
+            logger.info("[USER] : User created");
+        }
 
         Usuario usuario = new Usuario();
         usuario.setCorreo(dto.correo());
         usuario.setNombre(dto.nombre());
         usuario.setPasswordHash(passwordEncoder.encode(dto.password()));
-        usuario.setEmpresa(usuarioActual.getEmpresa());
+        usuario.setEmpresa(empresaDestino);
+        usuario.addRol(role);
 
         usuarioRepository.save(usuario);
 
         return UsuarioMapper.toResponse(usuario);
+    }
+
+    private boolean tieneRol(Usuario usuario, Role role) {
+        return usuario.getRoles() != null && usuario.getRoles().contains(role);
     }
 
     // Actualizar usuario
