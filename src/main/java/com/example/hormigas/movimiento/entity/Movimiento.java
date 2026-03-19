@@ -3,7 +3,7 @@ package com.example.hormigas.movimiento.entity;
 import com.example.hormigas.motivo.entity.MotivoMovimiento;
 import com.example.hormigas.producto.entity.Producto;
 import com.example.hormigas.sucursal.entity.Sucursal;
-import com.example.hormigas.security.entity.Usuario;
+import com.example.hormigas.security.domain.Usuario;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;

@@ -10,7 +10,7 @@ import com.example.hormigas.movimiento.entity.TipoMovimiento;
 import com.example.hormigas.movimiento.mapper.MovimientoMapper;
 import com.example.hormigas.motivo.repository.MotivoMovimientoRepository;
 import com.example.hormigas.movimiento.repository.MovimientoRepository;
-import com.example.hormigas.security.repository.UsuarioRepository;
+import com.example.hormigas.security.domain.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 

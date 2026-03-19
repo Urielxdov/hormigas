@@ -1,7 +1,7 @@
 package com.example.hormigas.sucursal.entity;
 
 import com.example.hormigas.empresa.entity.Empresa;
-import com.example.hormigas.security.entity.Usuario;
+import com.example.hormigas.security.domain.Usuario;
 import jakarta.persistence.*;
 
 @Entity
