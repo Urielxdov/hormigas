@@ -8,10 +8,12 @@ import com.example.hormigas.sucursal.dto.SucursalResponseDTO;
 import com.example.hormigas.sucursal.entity.Sucursal;
 import com.example.hormigas.sucursal.mapper.MapperSucursal;
 import com.example.hormigas.sucursal.repository.SucursalRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class SucursalService {
@@ -44,6 +46,22 @@ public class SucursalService {
     // actualizar sucursal
 
     // Eliminar sucursal
+    public SucursalResponseDTO desactivar(Long id) {
+        Usuario admin = usuarioService.getUsuarioLogueado();
+
+        Sucursal sucursal = sucursalRepository.findById(id)
+                .orElseThrow(() -> {
+                    return new EntityNotFoundException("No se encontro la sucursal");
+                });
+
+        if (!Objects.equals(admin.getEmpresa().getId(), sucursal.getEmpresa().getId())) {
+            throw new IllegalArgumentException("El usuario que intenta eliminar la sucursal no pertenece a la empresa");
+        }
+
+        sucursal.setActiva(false);
+
+        return MapperSucursal.toResponse(sucursalRepository.save(sucursal));
+    }
 
     // Ver sucursales
     public List<SucursalResponseDTO> obtenerSucursales() {
