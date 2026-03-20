@@ -1,17 +1,11 @@
 package com.example.hormigas.empresa.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.SQLDelete;
 
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
 @Table(
         name = "empresa",
@@ -43,7 +37,6 @@ public class Empresa {
     @Column(nullable = false)
     private boolean activo = true;
 
-    @Builder
     public Empresa(String telefono, String nombre, String rfc, String direccion, boolean activo) {
         this.activo = activo;
         this.telefono = telefono;
@@ -52,11 +45,64 @@ public class Empresa {
         this.direccion = direccion;
     }
 
-    @Builder
     public Empresa(String nombre, String rfc, String direccion, String telefono) {
         this.nombre = nombre;
         this.rfc = rfc;
         this.direccion = direccion;
         this.telefono = telefono;
+    }
+
+    public Empresa() {}
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getRfc() {
+        return rfc;
+    }
+
+    public void setRfc(String rfc) {
+        this.rfc = rfc;
+    }
+
+    public String getDireccion() {
+        return direccion;
+    }
+
+    public void setDireccion(String direccion) {
+        this.direccion = direccion;
+    }
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
+    }
+
+    public LocalDateTime getFechaCreacion() {
+        return fechaCreacion;
+    }
+
+    public void setFechaCreacion(LocalDateTime fechaCreacion) {
+        this.fechaCreacion = fechaCreacion;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
 }

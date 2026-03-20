@@ -58,12 +58,16 @@ public class DataInitializer implements CommandLineRunner {
 
         // Crear y guardar módulos
         List<String> nombresModulos = List.of("productos", "inventario", "movimientos", "usuarios", "reportes", "sucursales");
-        Map<String, Modulo> modulos = nombresModulos.stream()
-                .collect(Collectors.toMap(
-                        nombre -> nombre,
-                        nombre -> moduloRepository.findByNombre(nombre)
-                                .orElseGet(() -> moduloRepository.save(Modulo.builder().nombre(nombre).build()))
-                ));
+        Map<String, Modulo> modulos = new HashMap<>();
+        for (String nombreModulo : nombresModulos) {
+            Modulo m = moduloRepository.findByNombre(nombreModulo)
+                    .orElseGet(() -> {
+                        Modulo mod = new Modulo();
+                        mod.setNombre(nombreModulo);
+                        return moduloRepository.save(mod);
+                    });
+            modulos.put(nombreModulo, m);
+        }
 
         // Configuración de permisos por módulo
         Map<String, List<String>> permisosConfig = Map.of(
@@ -75,22 +79,24 @@ public class DataInitializer implements CommandLineRunner {
                 "sucursales", List.of("sucursal.ver", "sucursal.crear", "sucursal.editar", "sucursal.eliminar")
         );
 
-        // Crear permisos con builder, usando módulos persistidos
-        List<Permiso> permisos = permisosConfig.entrySet().stream()
-                .flatMap(entry -> entry.getValue().stream()
-                        .map(codigo -> Permiso.builder()
-                                .codigo(codigo)
-                                .modulo(modulos.get(entry.getKey()))
-                                .nombre(humanize(codigo))
-                                .build()))
-                .collect(Collectors.toList());
+        // Crear permisos sin builder
+        List<Permiso> permisos = new ArrayList<>();
+        for (Map.Entry<String, List<String>> entry : permisosConfig.entrySet()) {
+            Modulo modulo = modulos.get(entry.getKey());
+            for (String codigo : entry.getValue()) {
+                Permiso p = new Permiso();
+                p.setCodigo(codigo);
+                p.setModulo(modulo);
+                p.setNombre(humanize(codigo));
+                permisos.add(p);
+            }
+        }
 
-        // Permiso superadmin (agregado a la lista antes del saveAll)
-        Permiso superAdminTemp = Permiso.builder()
-                .codigo("system.superadmin")
-                .modulo(modulos.get("usuarios"))
-                .nombre("Permiso de superadministrador")
-                .build();
+        // Permiso superadmin
+        Permiso superAdminTemp = new Permiso();
+        superAdminTemp.setCodigo("system.superadmin");
+        superAdminTemp.setModulo(modulos.get("usuarios"));
+        superAdminTemp.setNombre("Permiso de superadministrador");
         permisos.add(superAdminTemp);
 
         // Guardar todos los permisos
@@ -102,26 +108,41 @@ public class DataInitializer implements CommandLineRunner {
                 .orElseThrow(() -> new RuntimeException("Permiso superadmin no encontrado"));
 
         // Crear empresa por defecto
-        Empresa empresa = empresaRepository.findById(1L).orElseGet(() ->
-                empresaRepository.save(new Empresa("5551234567", "Empresa por defecto S.A. de C.V.",
-                        "XAXX010101000", "Av. Principal 123, Ciudad, Estado", true))
-        );
+        Empresa empresa = empresaRepository.findById(1L).orElseGet(() -> {
+            Empresa e = new Empresa();
+            e.setTelefono("5551234567");
+            e.setNombre("Empresa por defecto S.A. de C.V.");
+            e.setRfc("XAXX010101000");
+            e.setDireccion("Av. Principal 123, Ciudad, Estado");
+            e.setActivo(true);
+            return empresaRepository.save(e);
+        });
 
         // Crear rol superadmin
-        Rol superRol = rolRepository.findByNombre("Super rol").orElseGet(() ->
-                rolRepository.save(new Rol("Super rol", "Este rol es para el super usuario", true, Set.of(superAdmin)))
-        );
+        Rol superRol = rolRepository.findByNombre("Super rol").orElseGet(() -> {
+            Rol r = new Rol();
+            r.setNombre("Super rol");
+            r.setDescripcion("Este rol es para el super usuario");
+            r.setActivo(true);
+            r.setPermisos(Set.of(superAdmin));
+            return rolRepository.save(r);
+        });
 
         // Crear usuario superadmin
         createUsuarioIfNotExists(email, nombre, password, empresa, superRol);
 
         // Crear rol admin empresa
-        Rol adminRol = rolRepository.findByNombre("Admin Empresa").orElseGet(() ->
-                rolRepository.save(new Rol("Admin Empresa", "Rol para administrar la empresa por defecto", true, Set.of(superAdmin)))
-        );
+        Rol adminRol = rolRepository.findByNombre("Admin Empresa").orElseGet(() -> {
+            Rol r = new Rol();
+            r.setNombre("Admin Empresa");
+            r.setDescripcion("Rol para administrar la empresa por defecto");
+            r.setActivo(true);
+            r.setPermisos(Set.of(superAdmin));
+            return rolRepository.save(r);
+        });
 
         // Crear usuario admin empresa
-        createUsuarioIfNotExists(email, nombre, password, empresa, superRol);
+        createUsuarioIfNotExists(email, nombre, password, empresa, adminRol);
     }
 
     private void createUsuarioIfNotExists(String correo, String nombre, String pass, Empresa empresa, Rol rol) {
@@ -132,7 +153,7 @@ public class DataInitializer implements CommandLineRunner {
             u.setPasswordHash(passwordEncoder.encode(pass));
             u.setActivo(true);
             u.setEmpresa(empresa);
-            u.addRol(Role.SUPER_ADMIN);
+            u.addRol(Role.SUPER_ADMIN); // si quieres agregar otros roles, puedes ajustar
             usuarioRepository.save(u);
             System.out.println("Usuario creado: " + correo);
         }

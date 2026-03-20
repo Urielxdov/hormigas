@@ -7,11 +7,6 @@ import lombok.*;
 import java.util.HashSet;
 import java.util.Set;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Entity
 @Table(name = "rol")
 public class Rol {
@@ -47,11 +42,49 @@ public class Rol {
         this.permiso.add(permiso);
     }
 
+    public Rol() {}
+
     @Builder
     public Rol(String nombre, String descripcion, Boolean activo, Set<Permiso> permiso) {
         this.nombre = nombre;
         this.permiso = permiso;
         this.descripcion = descripcion;
+        this.activo = activo;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public Set<Permiso> getPermiso() {
+        return permiso;
+    }
+
+    public void setPermiso(Set<Permiso> permiso) {
+        this.permiso = permiso;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
         this.activo = activo;
     }
 }

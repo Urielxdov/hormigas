@@ -41,10 +41,12 @@ public class EmpresaService {
         }
 
         Empresa nuevaEmpresa = new Empresa();
+
         nuevaEmpresa.setNombre(empresaDto.nombre());
         nuevaEmpresa.setRfc(empresaDto.rfc());
         nuevaEmpresa.setDireccion(empresaDto.direccion());
         nuevaEmpresa.setTelefono(empresaDto.telefono());
+        nuevaEmpresa.setActivo(true);
 
         Empresa empresa = empresaRepository.save(nuevaEmpresa);
 

@@ -12,11 +12,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Entity
 @Table(name = "usuario")
 public class Usuario implements UserDetails {
@@ -42,7 +37,6 @@ public class Usuario implements UserDetails {
     private String passwordHash;
 
     @Column(nullable = false)
-    @Builder.Default
     private boolean activo = true;
 
     private LocalDateTime fechaCreacion = LocalDateTime.now();
@@ -66,7 +60,6 @@ public class Usuario implements UserDetails {
     )
     @Enumerated(EnumType.STRING)
     @Column(name = "rol", nullable = false)
-    @Builder.Default
     private Set<Role> roles = new HashSet<>();
 
     // ===== Métodos de UserDetails =====
@@ -76,6 +69,20 @@ public class Usuario implements UserDetails {
         return roles.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
                 .toList();
+    }
+
+    public Usuario() {}
+
+    public Usuario(Long id, Empresa empresa, String nombre, String correo, String passwordHash, boolean activo, LocalDateTime fechaCreacion, LocalDateTime ultimoAcceso, Set<Role> roles) {
+        this.id = id;
+        this.empresa = empresa;
+        this.nombre = nombre;
+        this.correo = correo;
+        this.passwordHash = passwordHash;
+        this.activo = activo;
+        this.fechaCreacion = fechaCreacion;
+        this.ultimoAcceso = ultimoAcceso;
+        this.roles = roles;
     }
 
     @Override
@@ -110,5 +117,73 @@ public class Usuario implements UserDetails {
 
     public void addRol(Role rol) {
         this.roles.add(rol);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Empresa getEmpresa() {
+        return empresa;
+    }
+
+    public void setEmpresa(Empresa empresa) {
+        this.empresa = empresa;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getCorreo() {
+        return correo;
+    }
+
+    public void setCorreo(String correo) {
+        this.correo = correo;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
+    }
+
+    public LocalDateTime getFechaCreacion() {
+        return fechaCreacion;
+    }
+
+    public void setFechaCreacion(LocalDateTime fechaCreacion) {
+        this.fechaCreacion = fechaCreacion;
+    }
+
+    public LocalDateTime getUltimoAcceso() {
+        return ultimoAcceso;
+    }
+
+    public void setUltimoAcceso(LocalDateTime ultimoAcceso) {
+        this.ultimoAcceso = ultimoAcceso;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 }

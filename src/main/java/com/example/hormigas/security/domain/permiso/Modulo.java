@@ -9,11 +9,6 @@ import lombok.*;
  */
 @Entity
 @Table(name = "modulo")
-@Getter
-@Setter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
 public class Modulo {
 
     @Id
@@ -23,5 +18,22 @@ public class Modulo {
     @Column(nullable = false, unique = true)
     private String nombre;
 
+    public Modulo() {}
 
+    public Modulo(Long id, String nombre) {
+        this.id = id;
+        this.nombre = nombre;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
 }

@@ -9,6 +9,10 @@ public interface ModuloRepository extends JpaRepository<Modulo, Long> {
     Optional<Modulo> findByNombre(String nombre);
 
     default Modulo saveIfNotExists(String nombre) {
-        return findByNombre(nombre).orElseGet(() -> save(Modulo.builder().nombre(nombre).build()));
+        return findByNombre(nombre).orElseGet(() -> {
+            Modulo modulo = new Modulo();
+            modulo.setNombre(nombre); // setter explícito
+            return save(modulo);
+        });
     }
 }
