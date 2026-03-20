@@ -44,14 +44,15 @@ public class Movimiento {
     )
     private Usuario usuario;
 
-    @ManyToOne
-    @JoinColumn(
-            name = "motivo_id",
-            foreignKey = @ForeignKey(name = "fk_movimiento_motivo")
-    )
-    private MotivoMovimiento motivo;
+//    @ManyToOne
+//    @JoinColumn(
+//            name = "motivo_id",
+//            foreignKey = @ForeignKey(name = "fk_movimiento_motivo")
+//    )
+//    private MotivoMovimiento motivo;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, name = "tipo_movimiento")
     private TipoMovimiento tipoMovimiento;
 
     private int cantidad;
@@ -127,13 +128,13 @@ public class Movimiento {
         this.referencia = referencia;
     }
 
-    public MotivoMovimiento getMotivo() {
-        return motivo;
-    }
+//    public MotivoMovimiento getMotivo() {
+//        return motivo;
+//    }
 
-    public void setMotivo(MotivoMovimiento motivo) {
-        this.motivo = motivo;
-    }
+//    public void setMotivo(MotivoMovimiento motivo) {
+//        this.motivo = motivo;
+//    }
 
     public int getStockAnterior() {
         return stockAnterior;

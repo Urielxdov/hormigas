@@ -10,50 +10,54 @@ import com.example.hormigas.movimiento.entity.TipoMovimiento;
 import com.example.hormigas.movimiento.mapper.MovimientoMapper;
 import com.example.hormigas.motivo.repository.MotivoMovimientoRepository;
 import com.example.hormigas.movimiento.repository.MovimientoRepository;
+import com.example.hormigas.producto.repository.ProductoRepository;
+import com.example.hormigas.security.domain.Usuario;
 import com.example.hormigas.security.domain.repository.UsuarioRepository;
+import com.example.hormigas.security.domain.services.UsuarioService;
+import com.example.hormigas.sucursal.repository.SucursalRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class MovimientoService {
 
     private final InventarioRepository inventarioRepository;
     private final MovimientoRepository movimientoRepository;
-    private final MotivoMovimientoRepository motivoMovimientoRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final SucursalRepository sucursalRepository;
+    private final UsuarioService usuarioService;
+    private final ProductoRepository productoRepository;
 
-    public MovimientoService (
+    public MovimientoService(
             InventarioRepository inventarioRepository,
             MovimientoRepository movimientoRepository,
-            UsuarioRepository usuarioRepository,
-            MotivoMovimientoRepository motivoMovimientoRepository
+            UsuarioService usuarioService,
+            SucursalRepository sucursalRepository,
+            ProductoRepository productoRepository
     ) {
         this.inventarioRepository = inventarioRepository;
         this.movimientoRepository = movimientoRepository;
-        this.usuarioRepository = usuarioRepository;
-        this.motivoMovimientoRepository = motivoMovimientoRepository;
+        this.usuarioService = usuarioService;
+        this.sucursalRepository = sucursalRepository;
+        this.productoRepository = productoRepository;
     }
 
-    // Registrar movimiento de entrada - agregar stock
     @Transactional
-    public MovimientoResponseDTO registrarMovimiento(CrearMovimientoDTO dto, Long usuarioId) {
+    public MovimientoResponseDTO registrarMovimiento(CrearMovimientoDTO dto) {
+        Usuario user = usuarioService.getUsuarioLogueado();
 
         Inventario inventario = inventarioRepository
                 .findBySucursalIdAndProductoId(dto.sucursalId(), dto.productoId())
-                .orElseThrow();
+                .orElseThrow(() -> new EntityNotFoundException("Inventario no encontrado"));
 
-        MotivoMovimiento motivo = motivoMovimientoRepository
-                .findById(dto.motivoId())
-                .orElseThrow();
-
-        TipoMovimiento tipo = motivo.getTipoMovimiento();
-
+        TipoMovimiento tipo = dto.tipoMovimiento();
         int stockActual = inventario.getStockActual();
         int nuevoStock = tipo.aplicar(stockActual, dto.cantidad());
 
-        if (nuevoStock < 0) {
-            throw new IllegalArgumentException("Stock insuficiente");
-        }
+        if (nuevoStock < 0) throw new IllegalArgumentException("Stock insuficiente");
 
         inventario.setStockActual(nuevoStock);
         inventarioRepository.save(inventario);
@@ -61,25 +65,55 @@ public class MovimientoService {
         Movimiento movimiento = new Movimiento();
         movimiento.setProducto(inventario.getProducto());
         movimiento.setSucursal(inventario.getSucursal());
-        movimiento.setMotivo(motivo);
         movimiento.setTipoMovimiento(tipo);
         movimiento.setCantidad(dto.cantidad());
         movimiento.setStockAnterior(stockActual);
         movimiento.setStockNuevo(nuevoStock);
-        movimiento.setUsuario(usuarioRepository.findById(usuarioId).orElseThrow());
+        movimiento.setUsuario(user);
 
         movimientoRepository.save(movimiento);
 
         return MovimientoMapper.toResponse(movimiento);
     }
 
+    public List<MovimientoResponseDTO> obtenerMovimientos() {
+        Usuario user = usuarioService.getUsuarioLogueado();
+        List<Movimiento> movimientos = movimientoRepository.findBySucursal_Empresa_Id(user.getEmpresa().getId());
+        return movimientos.stream().map(MovimientoMapper::toResponse).toList();
+    }
 
+    public List<MovimientoResponseDTO> obtenerMovimientos(Long sucursalId) {
+        if (!sucursalRepository.existsById(sucursalId)) {
+            throw new EntityNotFoundException("Sucursal no existente");
+        }
+        Usuario user = usuarioService.getUsuarioLogueado();
+        List<Movimiento> movimientos = movimientoRepository.findBySucursal_Empresa_IdAndSucursal_Id(
+                user.getEmpresa().getId(), sucursalId
+        );
+        return movimientos.stream().map(MovimientoMapper::toResponse).toList();
+    }
 
-    // Registrar movimiento de salida - cuando se consume o vende stock
+    public List<MovimientoResponseDTO> obtenerMovimientosProducto(Long productoId) {
+        if (!productoRepository.existsById(productoId)) {
+            throw new EntityNotFoundException("Producto no registrado");
+        }
+        Usuario user = usuarioService.getUsuarioLogueado();
+        List<Movimiento> movimientos = movimientoRepository.findBySucursal_Empresa_IdAndProducto_Id(
+                user.getEmpresa().getId(), productoId
+        );
+        return movimientos.stream().map(MovimientoMapper::toResponse).toList();
+    }
 
-    // Registrar movimiento de ajuste - correcion de inventario por conteo fisico o errores
+    public MovimientoResponseDTO obtenerMovimiento(Long id) {
+        Usuario user = usuarioService.getUsuarioLogueado();
+        Movimiento movimiento = movimientoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Movimiento no encontrado"));
 
-    // Ver historial de mocimientos - consultar mocimientos por producto, sucursal, usuario o ranfos de fechas
+        // Validación de empresa a través de sucursal
+        if (!user.getEmpresa().getId().equals(movimiento.getSucursal().getEmpresa().getId())) {
+            throw new IllegalArgumentException("No autorizado");
+        }
 
-    // Configuracion motivos de movimeinto - crear motivos personalizables de entrada/salida/ajuste
+        return MovimientoMapper.toResponse(movimiento);
+    }
 }

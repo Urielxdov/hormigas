@@ -5,7 +5,7 @@ import com.example.hormigas.movimiento.entity.TipoMovimiento;
 public record CrearMovimientoDTO(
         Long sucursalId,
         Long productoId,
-        Long motivoId,
+        TipoMovimiento tipoMovimiento,
         int cantidad,
         String referencia
 ) {}

@@ -4,6 +4,7 @@ import com.example.hormigas.inventario.dto.InventarioResponseDTO;
 import com.example.hormigas.inventario.entity.Inventario;
 import com.example.hormigas.inventario.mapper.InventarioMapper;
 import com.example.hormigas.inventario.repository.InventarioRepository;
+import com.example.hormigas.movimiento.service.MovimientoService;
 import com.example.hormigas.sucursal.repository.SucursalRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
@@ -17,8 +18,9 @@ public class InventarioService {
     private final InventarioRepository inventarioRepository;
     private final SucursalRepository sucursalRepository;
 
-    public InventarioService (InventarioRepository inventarioRepository,
-                              SucursalRepository sucursalRepository
+    public InventarioService (
+            InventarioRepository inventarioRepository,
+            SucursalRepository sucursalRepository
     ) {
         this.inventarioRepository = inventarioRepository;
         this.sucursalRepository = sucursalRepository;
@@ -36,7 +38,7 @@ public class InventarioService {
                 .toList();
     }
     // Actualizar inventario (ajuste)
-    public InventarioResponseDTO actualizarInventario(Long idSucursal, Long idInventario, int nuevoStock) {
+    public InventarioResponseDTO actualizarInventario(Long idInventario, int nuevoStock) {
 
         if (nuevoStock < 0) {
             throw new IllegalArgumentException("El stock no puede ser negativo");
@@ -45,9 +47,6 @@ public class InventarioService {
         Inventario inventario = inventarioRepository.findById(idInventario)
                 .orElseThrow(() -> new EntityNotFoundException("Inventario no encontrado"));
 
-        if (!inventario.getSucursal().getId().equals(idSucursal)) {
-            throw new EntityNotFoundException("Inventario no encontrado en esta sucursal");
-        }
 
         inventario.setStockActual(nuevoStock);
 
