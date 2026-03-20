@@ -40,6 +40,8 @@ public class Inventario {
     )
     private Producto producto;
 
+    private int stockMaximo;
+
     private int stockActual;
 
     private Integer stockMinimo;
@@ -82,5 +84,21 @@ public class Inventario {
 
     public void setUltimaActualizacion(LocalDateTime ultimaActualizacion) {
         this.ultimaActualizacion = ultimaActualizacion;
+    }
+
+    public int getStockMaximo() {
+        return stockMaximo;
+    }
+
+    public void setStockMaximo(int stockMaximo) {
+        this.stockMaximo = stockMaximo;
+    }
+
+    public void setProducto(Producto producto) {
+        this.producto = producto;
+    }
+
+    public void setSucursal(Sucursal sucursal) {
+        this.sucursal = sucursal;
     }
 }

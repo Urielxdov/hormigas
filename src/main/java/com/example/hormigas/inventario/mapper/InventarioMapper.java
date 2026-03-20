@@ -5,11 +5,15 @@ import com.example.hormigas.inventario.entity.Inventario;
 
 public class InventarioMapper {
     public static InventarioResponseDTO toResponseInventario(Inventario inventario) {
-        InventarioResponseDTO response = new InventarioResponseDTO();
-        response.setProductoId(inventario.getProducto().getId());
-        response.setProductoNombre(inventario.getProducto().getNombre());
-        response.setStockActual(inventario.getStockActual());
-        response.setStockMinimo(inventario.getStockMinimo());
-        return response;
+        return new InventarioResponseDTO(
+                inventario.getId(),
+                inventario.getProducto().getId(),
+                inventario.getProducto().getNombre(),
+                inventario.getSucursal().getId(),
+                inventario.getSucursal().getNombre(),
+                inventario.getStockActual(),
+                inventario.getStockMinimo(),
+                inventario.getStockMaximo()
+        );
     }
 }

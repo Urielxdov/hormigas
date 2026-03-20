@@ -1,7 +1,9 @@
 package com.example.hormigas.movimiento.controller;
 
 import com.example.hormigas.movimiento.dto.CrearMovimientoDTO;
+import com.example.hormigas.movimiento.dto.MovimientoFiltroDTO;
 import com.example.hormigas.movimiento.dto.MovimientoResponseDTO;
+import com.example.hormigas.movimiento.entity.TipoMovimiento;
 import com.example.hormigas.movimiento.service.MovimientoService;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,23 +26,15 @@ public class MovimientoController {
         return movimientoService.registrarMovimiento(dto);
     }
 
-    @GetMapping("/")
-    public List<MovimientoResponseDTO> obtenerMovimientos() {
-        return movimientoService.obtenerMovimientos();
+    @GetMapping("/buscar")
+    public List<MovimientoResponseDTO> obtenerMovimientos(
+            @RequestParam(required = false) Long sucursalId,
+            @RequestParam(required = false) Long productoId,
+            @RequestParam(required = false) Long inventarioId,
+            @RequestParam(required = false)TipoMovimiento tipo
+            ) {
+        MovimientoFiltroDTO filtro = new MovimientoFiltroDTO(sucursalId, productoId, inventarioId, tipo);
+        return movimientoService.obtenerMovimientos(filtro);
     }
 
-    @GetMapping("/{id}")
-    public MovimientoResponseDTO obtenerMovimiento(@PathVariable Long id) {
-        return movimientoService.obtenerMovimiento(id);
-    }
-
-    @GetMapping("/producto/{productoId}")
-    public List<MovimientoResponseDTO> obtenerMovimientosProducto(@PathVariable Long productoId) {
-        return movimientoService.obtenerMovimientosProducto(productoId);
-    }
-
-    @GetMapping("/sucursal/{sucursalId}")
-    public List<MovimientoResponseDTO> obtenerMovimientosSucursal(@PathVariable Long sucursalId) {
-        return movimientoService.obtenerMovimientos(sucursalId);
-    }
 }

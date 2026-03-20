@@ -3,6 +3,7 @@ package com.example.hormigas.movimiento.service;
 import com.example.hormigas.inventario.entity.Inventario;
 import com.example.hormigas.inventario.repository.InventarioRepository;
 import com.example.hormigas.movimiento.dto.CrearMovimientoDTO;
+import com.example.hormigas.movimiento.dto.MovimientoFiltroDTO;
 import com.example.hormigas.movimiento.dto.MovimientoResponseDTO;
 import com.example.hormigas.motivo.entity.MotivoMovimiento;
 import com.example.hormigas.movimiento.entity.Movimiento;
@@ -10,6 +11,7 @@ import com.example.hormigas.movimiento.entity.TipoMovimiento;
 import com.example.hormigas.movimiento.mapper.MovimientoMapper;
 import com.example.hormigas.motivo.repository.MotivoMovimientoRepository;
 import com.example.hormigas.movimiento.repository.MovimientoRepository;
+import com.example.hormigas.movimiento.repository.MovimientoSpecification;
 import com.example.hormigas.producto.repository.ProductoRepository;
 import com.example.hormigas.security.domain.Usuario;
 import com.example.hormigas.security.domain.repository.UsuarioRepository;
@@ -49,22 +51,26 @@ public class MovimientoService {
     public MovimientoResponseDTO registrarMovimiento(CrearMovimientoDTO dto) {
         Usuario user = usuarioService.getUsuarioLogueado();
 
+        // Se valida la existencia del inventario
         Inventario inventario = inventarioRepository
                 .findBySucursalIdAndProductoId(dto.sucursalId(), dto.productoId())
                 .orElseThrow(() -> new EntityNotFoundException("Inventario no encontrado"));
 
+        // El tipo de movimiento es un enum
         TipoMovimiento tipo = dto.tipoMovimiento();
+        // Almacenamos para el historial
         int stockActual = inventario.getStockActual();
+        // tipo posee operaciones para aplicar el cambio
         int nuevoStock = tipo.aplicar(stockActual, dto.cantidad());
 
         if (nuevoStock < 0) throw new IllegalArgumentException("Stock insuficiente");
 
+        // Actualizacion del inventraio
         inventario.setStockActual(nuevoStock);
         inventarioRepository.save(inventario);
 
+        // Creamos el movimiento
         Movimiento movimiento = new Movimiento();
-        movimiento.setProducto(inventario.getProducto());
-        movimiento.setSucursal(inventario.getSucursal());
         movimiento.setTipoMovimiento(tipo);
         movimiento.setCantidad(dto.cantidad());
         movimiento.setStockAnterior(stockActual);
@@ -76,44 +82,13 @@ public class MovimientoService {
         return MovimientoMapper.toResponse(movimiento);
     }
 
-    public List<MovimientoResponseDTO> obtenerMovimientos() {
+    public List<MovimientoResponseDTO> obtenerMovimientos(MovimientoFiltroDTO filtro) {
         Usuario user = usuarioService.getUsuarioLogueado();
-        List<Movimiento> movimientos = movimientoRepository.findBySucursal_Empresa_Id(user.getEmpresa().getId());
-        return movimientos.stream().map(MovimientoMapper::toResponse).toList();
-    }
-
-    public List<MovimientoResponseDTO> obtenerMovimientos(Long sucursalId) {
-        if (!sucursalRepository.existsById(sucursalId)) {
-            throw new EntityNotFoundException("Sucursal no existente");
-        }
-        Usuario user = usuarioService.getUsuarioLogueado();
-        List<Movimiento> movimientos = movimientoRepository.findBySucursal_Empresa_IdAndSucursal_Id(
-                user.getEmpresa().getId(), sucursalId
+        List<Movimiento> movimientos = movimientoRepository.findAll(
+                MovimientoSpecification.conFiltros(user.getEmpresa().getId(), filtro)
         );
         return movimientos.stream().map(MovimientoMapper::toResponse).toList();
     }
 
-    public List<MovimientoResponseDTO> obtenerMovimientosProducto(Long productoId) {
-        if (!productoRepository.existsById(productoId)) {
-            throw new EntityNotFoundException("Producto no registrado");
-        }
-        Usuario user = usuarioService.getUsuarioLogueado();
-        List<Movimiento> movimientos = movimientoRepository.findBySucursal_Empresa_IdAndProducto_Id(
-                user.getEmpresa().getId(), productoId
-        );
-        return movimientos.stream().map(MovimientoMapper::toResponse).toList();
-    }
 
-    public MovimientoResponseDTO obtenerMovimiento(Long id) {
-        Usuario user = usuarioService.getUsuarioLogueado();
-        Movimiento movimiento = movimientoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Movimiento no encontrado"));
-
-        // Validación de empresa a través de sucursal
-        if (!user.getEmpresa().getId().equals(movimiento.getSucursal().getEmpresa().getId())) {
-            throw new IllegalArgumentException("No autorizado");
-        }
-
-        return MovimientoMapper.toResponse(movimiento);
-    }
 }

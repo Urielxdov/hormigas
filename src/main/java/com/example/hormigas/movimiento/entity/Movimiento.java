@@ -1,5 +1,6 @@
 package com.example.hormigas.movimiento.entity;
 
+import com.example.hormigas.inventario.entity.Inventario;
 import com.example.hormigas.motivo.entity.MotivoMovimiento;
 import com.example.hormigas.producto.entity.Producto;
 import com.example.hormigas.sucursal.entity.Sucursal;
@@ -25,17 +26,10 @@ public class Movimiento {
 
     @ManyToOne
     @JoinColumn(
-            name = "producto_id",
-            foreignKey = @ForeignKey(name = "fk_movimiento_producto")
+            name = "inventario_id",
+            foreignKey = @ForeignKey(name = "fk_movimiento_inventario")
     )
-    private Producto producto;
-
-    @ManyToOne
-    @JoinColumn(
-            name = "sucursal_id",
-            foreignKey = @ForeignKey(name = "fk_movimiento_sucursal")
-    )
-    private Sucursal sucursal;
+    private Inventario inventario;
 
     @ManyToOne
     @JoinColumn(
@@ -72,14 +66,6 @@ public class Movimiento {
     }
 
 
-    public Sucursal getSucursal() {
-        return sucursal;
-    }
-
-    public Producto getProducto() {
-        return producto;
-    }
-
     public Usuario getUsuario() {
         return usuario;
     }
@@ -98,14 +84,6 @@ public class Movimiento {
 
     public String getReferencia() {
         return referencia;
-    }
-
-    public void setSucursal(Sucursal sucursal) {
-        this.sucursal = sucursal;
-    }
-
-    public void setProducto(Producto producto) {
-        this.producto = producto;
     }
 
     public void setUsuario(Usuario usuario) {
@@ -128,14 +106,6 @@ public class Movimiento {
         this.referencia = referencia;
     }
 
-//    public MotivoMovimiento getMotivo() {
-//        return motivo;
-//    }
-
-//    public void setMotivo(MotivoMovimiento motivo) {
-//        this.motivo = motivo;
-//    }
-
     public int getStockAnterior() {
         return stockAnterior;
     }
@@ -150,5 +120,13 @@ public class Movimiento {
 
     public void setStockNuevo(int stockNuevo) {
         this.stockNuevo = stockNuevo;
+    }
+
+    public Inventario getInventario() {
+        return inventario;
+    }
+
+    public void setInventario(Inventario inventario) {
+        this.inventario = inventario;
     }
 }

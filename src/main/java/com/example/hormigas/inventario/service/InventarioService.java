@@ -56,4 +56,5 @@ public class InventarioService {
     }
 
     // Ver historial de inventario (Historial de movmientos)
+    
 }
