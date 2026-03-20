@@ -3,7 +3,13 @@ package com.example.hormigas.sucursal.entity;
 import com.example.hormigas.empresa.entity.Empresa;
 import com.example.hormigas.security.domain.Usuario;
 import jakarta.persistence.*;
+import lombok.*;
 
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Entity
 @Table(name = "sucursal")
 public class Sucursal {
@@ -31,27 +37,5 @@ public class Sucursal {
     private String direccion;
 
     @Column(nullable = false)
-    private boolean activa;
-
-    public Sucursal() {}
-
-    public Long getId() {
-        return id;
-    }
-
-    public Empresa getEmpresa() {
-        return empresa;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public String getDireccion() {
-        return direccion;
-    }
-
-    public boolean isActica() {
-        return activa;
-    }
+    private boolean activa = true;
 }
