@@ -8,6 +8,8 @@ import com.example.hormigas.producto.dto.ProductoResponseDTO;
 import com.example.hormigas.producto.entity.Producto;
 import com.example.hormigas.producto.mapper.ProductoMapper;
 import com.example.hormigas.producto.repository.ProductoRepository;
+import com.example.hormigas.security.domain.Usuario;
+import com.example.hormigas.security.domain.services.UsuarioService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,21 +19,20 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProductoService {
     private final ProductoRepository productoRepository;
-    private final EmpresaRepository empresaRepository;
+    private final UsuarioService usuarioService;
 
     public ProductoService(
             ProductoRepository productoRepository,
-            EmpresaRepository empresaRepository
+            UsuarioService usuarioService
     ) {
         this.productoRepository = productoRepository;
-        this.empresaRepository = empresaRepository;
+        this.usuarioService = usuarioService;
     }
     // Crear producto
     public ProductoResponseDTO crearProducto(NuevoProductoDTO dto) {
-        Empresa empresa = empresaRepository.findById(dto.empresaId())
-                .orElseThrow(() -> new EntityNotFoundException("No se localizo la empresa"));
+        Usuario user = usuarioService.getUsuarioLogueado();
 
-        productoRepository.findByEmpresaIdAndSku(dto.empresaId(), dto.sku())
+        productoRepository.findByEmpresaIdAndSku(user.getEmpresa().getId(), dto.sku())
                 .ifPresent(p -> {
                     throw new RuntimeException("El SKU ya existe en esta empresa");
                 });
@@ -47,15 +48,16 @@ public class ProductoService {
         producto.setPrecio(dto.precio());
 
         // relacion
-        producto.setEmpresa(empresa);
+        producto.setEmpresa(user.getEmpresa());
 
         return ProductoMapper.toResponse(productoRepository.save(producto));
     }
 
     // Actualizar producto
-    public ProductoResponseDTO actualizarProducto(Long id, Long empresaId, ProductoActualizadoDTO dto) {
+    public ProductoResponseDTO actualizarProducto(Long id, ProductoActualizadoDTO dto) {
+        Usuario user = usuarioService.getUsuarioLogueado();
         Producto producto = productoRepository
-                .findByIdAndEmpresaId(id, empresaId)
+                .findByIdAndEmpresaId(id, user.getEmpresa().getId())
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
         if (dto.nombre() != null) {
@@ -73,17 +75,19 @@ public class ProductoService {
         return ProductoMapper.toResponse(productoRepository.save(producto));
     }
     // Eliminar producto
-    public void eliminarProducto (Long id, Long empresaId) {
-        int filas = productoRepository.desactivarProducto(id, empresaId);
+    public void eliminarProducto (Long id) {
+        Usuario user = usuarioService.getUsuarioLogueado();
+        int filas = productoRepository.desactivarProducto(id, user.getEmpresa().getId());
 
         if (filas == 0) {
             throw new EntityNotFoundException("Producto no encontrado");
         }
     }
     // Ver productos
-    public Page<ProductoResponseDTO> obtenerProductos(Long empresaId, Pageable pageable) {
+    public Page<ProductoResponseDTO> obtenerProductos(Pageable pageable) {
+        Usuario user = usuarioService.getUsuarioLogueado();
         return productoRepository
-                .findByEmpresaIdAndActivoTrue(empresaId, pageable)
+                .findByEmpresaIdAndActivoTrue(user.getEmpresa().getId(), pageable)
                 .map(ProductoMapper::toResponse);
     }
 
