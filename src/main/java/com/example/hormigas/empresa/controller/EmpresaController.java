@@ -49,14 +49,16 @@ public class EmpresaController {
 
     @PatchMapping("/{id}/activate")
     // Exclusivo de super admin
-    public ResponseEntity<EmpresaResponseDTO> activar(@PathVariable Long id) {
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(empresaService.activate(id));
+    public ResponseEntity<Void> activar(@PathVariable Long id) {
+        empresaService.activate(id);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
     @PatchMapping("/{rfc}/activate")
     // Exclusivo de super admin
     public ResponseEntity<EmpresaResponseDTO> activar(@PathVariable String rfc) {
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(empresaService.activate(rfc));
+        empresaService.activate(rfc);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
     @GetMapping("/")

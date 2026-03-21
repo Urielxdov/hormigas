@@ -1,10 +1,12 @@
 package com.example.hormigas.inventario.service;
 
 import com.example.hormigas.inventario.dto.CrearInventarioDTO;
+import com.example.hormigas.inventario.dto.InventarioFiltroDTO;
 import com.example.hormigas.inventario.dto.InventarioResponseDTO;
 import com.example.hormigas.inventario.entity.Inventario;
 import com.example.hormigas.inventario.mapper.InventarioMapper;
 import com.example.hormigas.inventario.repository.InventarioRepository;
+import com.example.hormigas.inventario.repository.InventarioSpecification;
 import com.example.hormigas.movimiento.service.MovimientoService;
 import com.example.hormigas.producto.entity.Producto;
 import com.example.hormigas.producto.repository.ProductoRepository;
@@ -13,10 +15,12 @@ import com.example.hormigas.security.domain.services.UsuarioService;
 import com.example.hormigas.sucursal.entity.Sucursal;
 import com.example.hormigas.sucursal.repository.SucursalRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class InventarioService {
@@ -61,34 +65,37 @@ public class InventarioService {
         return InventarioMapper.toResponseInventario(inventarioRepository.save(inventario));
     }
 
-    // Ver inventario por sucursal
-    public List<InventarioResponseDTO> obtenerInventarioPorSucursal (Long sucursalId) {
-        if (!sucursalRepository.existsById(sucursalId)) {
-            throw new EntityNotFoundException("Sucursal no encontrada");
-        }
+    //Busqueda por sucursal, producto y empresa
+    public List<InventarioResponseDTO> obtenerInventario(InventarioFiltroDTO filter) {
+        Usuario user = usuarioService.getUsuarioLogueado();
 
-        return inventarioRepository.findBySucursalId(sucursalId)
-                .stream()
+        List<Inventario> inventarios = inventarioRepository.findAll(
+                InventarioSpecification.conFiltros(user.getEmpresa().getId(), filter)
+        );
+
+        return inventarios.stream()
                 .map(InventarioMapper::toResponseInventario)
                 .toList();
     }
-    // Actualizar inventario (ajuste)
-    public InventarioResponseDTO actualizarInventario(Long idInventario, int nuevoStock) {
 
-        if (nuevoStock < 0) {
-            throw new IllegalArgumentException("El stock no puede ser negativo");
-        }
+    @Transactional
+    public void agregarASucursal(Long sucursalId, Long inventarioId) {
+        Usuario user = usuarioService.getUsuarioLogueado();
 
-        Inventario inventario = inventarioRepository.findById(idInventario)
-                .orElseThrow(() -> new EntityNotFoundException("Inventario no encontrado"));
-
-
-        inventario.setStockActual(nuevoStock);
-
-        return InventarioMapper.toResponseInventario(
-                inventarioRepository.save(inventario)
+        int filas = inventarioRepository.asignarASucursal(
+                inventarioId,
+                sucursalId,
+                user.getEmpresa().getId()
         );
+
+        if (filas == 0) {
+            throw new IllegalArgumentException("Inventario o sucursal invalidos o no pertenecen a la empresa");
+        }
+        if (filas > 1) {
+            throw new IllegalStateException("Error critico: multiples inventarios afectado");
+        }
     }
+
 
     // Ver historial de inventario (Historial de movmientos)
 

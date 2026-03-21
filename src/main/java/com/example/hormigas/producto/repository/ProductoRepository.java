@@ -35,4 +35,5 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             @Param("empresaId") Long empresaId
     );
 
+
 }

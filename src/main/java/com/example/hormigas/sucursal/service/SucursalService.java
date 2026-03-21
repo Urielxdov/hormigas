@@ -1,5 +1,6 @@
 package com.example.hormigas.sucursal.service;
 
+import com.example.hormigas.inventario.service.InventarioService;
 import com.example.hormigas.security.domain.Role;
 import com.example.hormigas.security.domain.Usuario;
 import com.example.hormigas.security.domain.services.UsuarioService;
@@ -19,10 +20,12 @@ import java.util.Objects;
 public class SucursalService {
     private final UsuarioService usuarioService;
     private final SucursalRepository sucursalRepository;
+    private final InventarioService inventarioService;
 
-    public SucursalService(UsuarioService usuarioService, SucursalRepository sucursalRepository) {
+    public SucursalService(UsuarioService usuarioService, SucursalRepository sucursalRepository, InventarioService inventarioService) {
         this.usuarioService = usuarioService;
         this.sucursalRepository = sucursalRepository;
+        this.inventarioService = inventarioService;
     }
 
 
@@ -38,6 +41,8 @@ public class SucursalService {
         sucursal.setNombre(dto.nombre());
         sucursal.setDireccion(dto.direccion());
         sucursal.setEmpresa(admin.getEmpresa());
+
+        sucursal = sucursalRepository.save(sucursal);
 
         return MapperSucursal.toResponse(sucursal);
     }
@@ -71,5 +76,11 @@ public class SucursalService {
                 .stream()
                 .map(MapperSucursal::toResponse)
                 .toList();
+    }
+
+
+    // Agregar inventario a sucursal
+    public void agregarInventario(Long sucursalId, Long inventarioId) {
+        inventarioService.agregarASucursal(sucursalId, inventarioId);
     }
 }

@@ -7,24 +7,37 @@ import java.time.format.DateTimeFormatter;
 
 public class MovimientoMapper {
 
-
     public static MovimientoResponseDTO toResponse(Movimiento movimiento) {
+        Long productoId = movimiento.getInventario() != null && movimiento.getInventario().getProducto() != null
+                ? movimiento.getInventario().getProducto().getId()
+                : null;
+        String productoNombre = movimiento.getInventario() != null && movimiento.getInventario().getProducto() != null
+                ? movimiento.getInventario().getProducto().getNombre()
+                : null;
+
+        Long sucursalId = movimiento.getInventario() != null && movimiento.getInventario().getSucursal() != null
+                ? movimiento.getInventario().getSucursal().getId()
+                : null;
+        String sucursalNombre = movimiento.getInventario() != null && movimiento.getInventario().getSucursal() != null
+                ? movimiento.getInventario().getSucursal().getNombre()
+                : null;
+
+        String usuarioNombre = movimiento.getUsuario() != null
+                ? movimiento.getUsuario().getNombre()
+                : null;
+
         return new MovimientoResponseDTO(
                 movimiento.getId(),
-
-                movimiento.getInventario().getProducto().getId(),
-                movimiento.getInventario().getProducto().getNombre(),
-
-                movimiento.getInventario().getSucursal().getId(),
-                movimiento.getInventario().getSucursal().getNombre(),
-
+                productoId,
+                productoNombre,
+                sucursalId,
+                sucursalNombre,
                 movimiento.getTipoMovimiento(),
                 movimiento.getCantidad(),
-
-                movimiento.getUsuario().getNombre(),
+                usuarioNombre,
                 movimiento.getReferencia(),
-
                 movimiento.getFecha()
         );
     }
+
 }

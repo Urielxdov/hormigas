@@ -101,52 +101,44 @@ public class EmpresaService {
     // Eliminar empresa
     // Exclusivo de superadmin
     public void deleteEmpresa (Long id) {
-        Empresa empresa = empresaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
-
-        empresa.setActivo(false);
-
-        empresaRepository.save(empresa);
+        empresaRepository.desactivarEmpresa(id);
     }
 
     public void deleteEmpresa () {
         Usuario admin = usuarioService.getUsuarioLogueado();
-        Empresa empresa = admin.getEmpresa();
-
-        empresa.setActivo(false);
-        empresaRepository.save(empresa);
+        empresaRepository.desactivarEmpresa(admin.getEmpresa().getId());
     }
 
-    public EmpresaResponseDTO activate (Long id) {
-        Empresa empresa = empresaRepository.findById(id)
-                .orElseThrow(() -> {
-                    logger.error("[SYS] : Super admin try activate to \n" +
-                            "non-existent company. Id : {}", id);
-                    return new EntityNotFoundException("No se encontro la empresa");
-                });
+    public void activate (Long id) {
+        int filas = empresaRepository.activarEmpresa(id);
 
-        if (empresa.isActivo()) {
-            logger.error("[SYS] : Super admin try activate to active company. Id : {}", id);
-            throw new IllegalArgumentException("La empresa ya se encuentra activa");
+        if (filas == 0) {
+            logger.error("[SYS] : Super admin try activate non-existent company. Id: {}", id);
+            throw new EntityNotFoundException("No se encontró la empresa");
         }
-        empresa.setActivo(true);
-        return EmpresaMapper.toResponseEmpresa(empresa);
+
+        if (filas > 1) {
+            logger.fatal("[SYS] : CRITICAL - Multiple companies activated with same ID. Id: {}", id);
+            throw new IllegalStateException("Error crítico: múltiples empresas afectadas");
+        }
+
+        logger.info("[COMPANY] : Company activated {}", id);
     }
 
-    public EmpresaResponseDTO activate (String rfc) {
-        Empresa empresa = empresaRepository.findByRfc(rfc)
-                .orElseThrow(() -> {
-                    logger.error("[SYS] : Super admin try activate to \n" +
-                            "non-existent company. RFC : {}", rfc);
-                    return new EntityNotFoundException("No se encontro la empresa");
-                });
+    public void activate (String rfc) {
+        int filas = empresaRepository.activarEmpresa(rfc);
 
-        if (empresa.isActivo()) {
-            logger.error("[SYS] : Super admin try activate to active company. RFC : {}", rfc);
-            throw new IllegalArgumentException("La empresa ya se encuentra activa");
+        if (filas == 0) {
+            logger.error("[SYS] : Super admin try activate non-existent company. rfc: {}", rfc);
+            throw new EntityNotFoundException("No se encontró la empresa");
         }
-        empresa.setActivo(true);
-        return EmpresaMapper.toResponseEmpresa(empresa);
+
+        if (filas > 1) {
+            logger.fatal("[SYS] : CRITICAL - Multiple companies activated with same ID. rfc: {}", rfc);
+            throw new IllegalStateException("Error crítico: múltiples empresas afectadas");
+        }
+
+        logger.info("[COMPANY] : Company activated {}", rfc);
     }
 
     // Ver detalle de empresa

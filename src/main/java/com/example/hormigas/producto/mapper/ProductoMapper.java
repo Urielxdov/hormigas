@@ -8,7 +8,7 @@ public class ProductoMapper {
     public static ProductoResponseDTO toResponse(Producto producto) {
         return new ProductoResponseDTO(
                 producto.getId(),
-                producto.getCategoria().getNombre(),
+                producto.getCategoria() != null ? producto.getCategoria().getNombre() : null,
                 producto.getNombre(),
                 producto.getDescripcion(),
                 producto.getSku(),
