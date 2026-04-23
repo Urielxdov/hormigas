@@ -9,6 +9,7 @@ public class InventarioMapper {
                 inventario.getId(),
                 inventario.getProducto().getId(),
                 inventario.getProducto().getNombre(),
+                inventario.getProducto().getPrecio(),
                 inventario.getSucursal().getId(),
                 inventario.getSucursal().getNombre(),
                 inventario.getStockActual(),
