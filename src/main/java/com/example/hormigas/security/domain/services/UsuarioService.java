@@ -23,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class UsuarioService implements UserDetailsService {
@@ -142,6 +143,15 @@ public class UsuarioService implements UserDetailsService {
 
         }
         return new UsuarioResponseDTO(1L, "Prueba", "Pruebas", 1L);
+    }
+
+    // Obtener todos los usuarios activos
+    public List<UsuarioResponseDTO> getAllUsuarios() {
+        List<Usuario> usuarios = usuarioRepository.findAllByActivo(true);
+        logger.info("[USER] : Retrieved all active users. Total: {}", usuarios.size());
+        return usuarios.stream()
+                .map(UsuarioMapper::toResponse)
+                .toList();
     }
 
     // Eliminar usuario

@@ -57,6 +57,10 @@ public class SecurityConfig {
                 // 3. Regla genérica (SIEMPRE AL FINAL de su grupo)
                 .requestMatchers("/api/empresa/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
 
+                .requestMatchers("/api/usuario/list").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+                .requestMatchers("/api/usuario/create").hasAuthority("ROLE_SUPER_ADMIN")
+                .requestMatchers("/api/usuario/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+
                 // 4. Cualquier otra cosa logueado
                 .anyRequest().authenticated()
             )
