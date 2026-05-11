@@ -14,6 +14,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class EmpresaService {
     private final static Logger logger = LogManager.getLogger(EmpresaService.class);
@@ -50,7 +52,7 @@ public class EmpresaService {
 
         Empresa empresa = empresaRepository.save(nuevaEmpresa);
 
-        usuarioService.nuevoUsuario(UsuarioMapper.toCreate(adminDto, empresa.getId()));
+        usuarioService.nuevoAdminParaEmpresa(UsuarioMapper.toCreate(adminDto, empresa.getId()));
         return EmpresaMapper.toResponseEmpresa(empresa);
     }
 
@@ -146,5 +148,14 @@ public class EmpresaService {
         Usuario user = usuarioService.getUsuarioLogueado();
 
         return EmpresaMapper.toResponseEmpresa(user.getEmpresa());
+    }
+
+    // Obtener todas las empresas activas
+    public List<EmpresaResponseDTO> getAllEmpresas() {
+        List<Empresa> empresas = empresaRepository.findAllByActivo(true);
+        logger.info("[COMPANY] : Retrieved all active companies. Total: {}", empresas.size());
+        return empresas.stream()
+                .map(EmpresaMapper::toResponseEmpresa)
+                .toList();
     }
 }

@@ -93,6 +93,30 @@ public class UsuarioService implements UserDetailsService {
         return UsuarioMapper.toResponse(usuario);
     }
 
+    public UsuarioResponseDTO nuevoAdminParaEmpresa(CreateUsuarioDTO dto) {
+        if (usuarioRepository.findByCorreo(dto.correo()).isPresent()) {
+            logger.error("[USER] : The email {} already exist", dto.correo());
+            throw new IllegalArgumentException("Correo ya registrado");
+        }
+
+        Empresa empresaDestino = empresaRepository.findById(dto.empresaId())
+                .orElseThrow(() -> {
+                    logger.error("[SYS] : The company for the new admin does not exist");
+                    return new EntityNotFoundException("Empresa no encontrada");
+                });
+
+        Usuario usuario = new Usuario();
+        usuario.setCorreo(dto.correo());
+        usuario.setNombre(dto.nombre());
+        usuario.setPasswordHash(passwordEncoder.encode(dto.password()));
+        usuario.setEmpresa(empresaDestino);
+        usuario.addRol(Role.ADMIN);
+
+        usuarioRepository.save(usuario);
+
+        return UsuarioMapper.toResponse(usuario);
+    }
+
     private boolean tieneRol(Usuario usuario, Role role) {
         return usuario.getRoles() != null && usuario.getRoles().contains(role);
     }

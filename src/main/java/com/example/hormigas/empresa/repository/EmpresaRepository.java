@@ -7,11 +7,13 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface EmpresaRepository extends JpaRepository<Empresa, Long> {
     Optional<Empresa> findByRfc(String rfc);
     Optional<Empresa> findByNombre(String nombre);
+    List<Empresa> findAllByActivo(boolean activo);
 
 
     boolean existsByNombre(String nombre);

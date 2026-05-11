@@ -12,6 +12,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,20 +31,38 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
+   // SecurityConfig.java
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        // Solo el login se abre
-                        .requestMatchers(LOGIN_URL_MATCHER).permitAll()
-                        .requestMatchers("/api/empresa/create").hasRole(Role.SUPER_ADMIN.toString())
-                        .requestMatchers("/api/empresa/**").hasRole(Role.ADMIN.toString())
-                        .requestMatchers("/api/empresa/delete").hasRole(Role.ADMIN.toString())
-                        .requestMatchers("/api/empresa/delete/*").hasRole(Role.SUPER_ADMIN.toString())
-                        .anyRequest().authenticated()
-                )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS configurado
+            .csrf(csrf -> csrf.disable()) // CSRF desactivado para APIs
+            
+            // VITAL para JWT: No guardar estado de sesión
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS)
+            )
+            
+            .authorizeHttpRequests(auth -> auth
+                // 1. Permitir Login
+                .requestMatchers(LOGIN_URL_MATCHER).permitAll()
+                .requestMatchers("/api/auth/**").permitAll()
+
+                // 2. Reglas específicas (SIEMPRE ARRIBA)
+                .requestMatchers("/api/empresa/create").hasAuthority("ROLE_SUPER_ADMIN")
+                .requestMatchers("/api/empresa/delete/**").hasAuthority("ROLE_SUPER_ADMIN")
+                .requestMatchers("/api/empresa/all").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+
+                // 3. Regla genérica (SIEMPRE AL FINAL de su grupo)
+                .requestMatchers("/api/empresa/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+
+                // 4. Cualquier otra cosa logueado
+                .anyRequest().authenticated()
+            )
+            
+            // Tu filtro JWT antes del de usuario/password
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -55,12 +76,29 @@ public class SecurityConfig {
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
         converter.setJwtGrantedAuthoritiesConverter(jwt -> {
-            String roles = jwt.getClaimAsString("roles"); // Recuperamos los claims
+            String roles = jwt.getClaimAsString("roles");
             if (roles == null || roles.isBlank()) return List.of();
+            
             return Arrays.stream(roles.split(" "))
+                    .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role) // Fuerza el prefijo
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
         });
         return converter;
     }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowCredentials(false);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }
+

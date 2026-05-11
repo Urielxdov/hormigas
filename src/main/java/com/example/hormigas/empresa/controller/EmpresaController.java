@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -88,5 +89,12 @@ public class EmpresaController {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(error);
+    }
+
+
+    @GetMapping("/all") // Antes tenías @GetMapping("/")
+    public ResponseEntity<List<EmpresaResponseDTO>> obtenerTodo() {
+        List<EmpresaResponseDTO> empresas = empresaService.getAllEmpresas();
+        return ResponseEntity.ok(empresas);
     }
 }
