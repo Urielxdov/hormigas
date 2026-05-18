@@ -32,12 +32,12 @@ public class InventarioSpecification {
             }
 
             // Producto
-            if (filter.prodcutoId() != null) {
+            if (filter.productoId() != null) {
                 predicates = criteriaBuilder.and(predicates,
                         criteriaBuilder.equal(
                                 root.get("producto")
                                         .get("id"),
-                                filter.prodcutoId()
+                                filter.productoId()
                         )
                 );
             }
