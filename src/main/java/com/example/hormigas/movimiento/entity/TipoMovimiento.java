@@ -1,66 +1,24 @@
 package com.example.hormigas.movimiento.entity;
 
-/**
- * Tipos de movimientos que pueden afectar el inventario.
- *
- * Todo cambio en la cantidad de un producto debe registrarse como un movimiento.
- * Esto permite auditar el inventario y saber por qué subió o bajó el stock.
- */
 public enum TipoMovimiento {
 
-    /**
-     * Entrada de inventario por compra a proveedor.
-     * Aumenta el stock.
-     * Ejemplo: se compran 20 refrescos a Coca-Cola.
-     */
     COMPRA(1),
-
-    /**
-     * Salida de inventario por venta a un cliente.
-     * Disminuye el stock.
-     * Ejemplo: se venden 3 refrescos en la tienda.
-     */
     VENTA(-1),
-
-    /**
-     * Corrección manual del inventario cuando el sistema
-     * no coincide con el conteo físico.
-     *
-     * Puede aumentar o disminuir el stock dependiendo del ajuste.
-     * Ejemplo: el sistema dice 10 pero físicamente hay 12.
-     */
     AJUSTE(0),
-
-    /**
-     * Pérdida de inventario por daño, caducidad, robo o desperdicio.
-     * Siempre disminuye el stock.
-     * Ejemplo: productos caducados o rotos.
-     */
     MERMA(-1),
 
-    /**
-     * Movimiento causado por una devolución.
-     *
-     * Dependiendo del contexto puede aumentar o disminuir el stock:
-     * - Cliente devuelve un producto -> aumenta inventario.
-     * - Se devuelve al proveedor -> disminuye inventario.
-     */
+    /** @deprecated Usar DEVOLUCION_CLIENTE o DEVOLUCION_PROVEEDOR */
+    @Deprecated
     DEVOLUCION(1),
 
-    /**
-     * Entrada de inventario proveniente de otra sucursal o almacén.
-     * Aumenta el stock en la sucursal destino.
-     */
-    TRASLADO_ENTRADA(1),
+    DEVOLUCION_CLIENTE(1),
+    DEVOLUCION_PROVEEDOR(-1),
 
-    /**
-     * Salida de inventario hacia otra sucursal o almacén.
-     * Disminuye el stock en la sucursal origen.
-     */
+    TRASLADO_ENTRADA(1),
     TRASLADO_SALIDA(-1);
 
     private final int factor;
-    
+
     TipoMovimiento(int factor) {
         this.factor = factor;
     }
@@ -70,5 +28,9 @@ public enum TipoMovimiento {
             return cantidad;
         }
         return stockActual + (cantidad * factor);
+    }
+
+    public boolean esEntrada() {
+        return factor > 0;
     }
 }
