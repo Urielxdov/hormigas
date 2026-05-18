@@ -70,15 +70,25 @@ public class MovimientoService {
 
         // Actualizacion del inventraio
         inventario.setStockActual(nuevoStock);
+        inventario.setUltimaActualizacion(LocalDateTime.now());
         inventarioRepository.save(inventario);
 
         // Creamos el movimiento
         Movimiento movimiento = new Movimiento();
+        movimiento.setInventario(inventario);
         movimiento.setTipoMovimiento(tipo);
         movimiento.setCantidad(dto.cantidad());
         movimiento.setStockAnterior(stockActual);
         movimiento.setStockNuevo(nuevoStock);
         movimiento.setUsuario(user);
+        movimiento.setFecha(LocalDateTime.now());
+        movimiento.setReferencia(dto.referencia());
+
+        if (dto.motivoId() != null) {
+            MotivoMovimiento motivo = motivoRepository.findById(dto.motivoId())
+                    .orElseThrow(() -> new EntityNotFoundException("Motivo no encontrado: " + dto.motivoId()));
+            movimiento.setMotivo(motivo);
+        }
 
         movimientoRepository.save(movimiento);
 
