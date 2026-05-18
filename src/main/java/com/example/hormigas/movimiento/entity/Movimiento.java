@@ -36,12 +36,12 @@ public class Movimiento {
     )
     private Usuario usuario;
 
-//    @ManyToOne
-//    @JoinColumn(
-//            name = "motivo_id",
-//            foreignKey = @ForeignKey(name = "fk_movimiento_motivo")
-//    )
-//    private MotivoMovimiento motivo;
+@ManyToOne
+    @JoinColumn(
+            name = "motivo_id",
+            foreignKey = @ForeignKey(name = "fk_movimiento_motivo")
+    )
+    private MotivoMovimiento motivo;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, name = "tipo_movimiento")
@@ -126,5 +126,13 @@ public class Movimiento {
 
     public void setInventario(Inventario inventario) {
         this.inventario = inventario;
+    }
+
+    public MotivoMovimiento getMotivo() {
+        return motivo;
+    }
+
+    public void setMotivo(MotivoMovimiento motivo) {
+        this.motivo = motivo;
     }
 }

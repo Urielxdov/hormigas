@@ -32,19 +32,22 @@ public class MovimientoService {
     private final SucursalRepository sucursalRepository;
     private final UsuarioService usuarioService;
     private final ProductoRepository productoRepository;
+    private final MotivoMovimientoRepository motivoRepository;
 
     public MovimientoService(
             InventarioRepository inventarioRepository,
             MovimientoRepository movimientoRepository,
             UsuarioService usuarioService,
             SucursalRepository sucursalRepository,
-            ProductoRepository productoRepository
+            ProductoRepository productoRepository,
+            MotivoMovimientoRepository motivoRepository
     ) {
         this.inventarioRepository = inventarioRepository;
         this.movimientoRepository = movimientoRepository;
         this.usuarioService = usuarioService;
         this.sucursalRepository = sucursalRepository;
         this.productoRepository = productoRepository;
+        this.motivoRepository = motivoRepository;
     }
 
     @Transactional
