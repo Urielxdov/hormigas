@@ -1,7 +1,9 @@
 package com.example.hormigas.movimiento.service;
 
+import com.example.hormigas.inventario.dto.AlertaStock;
 import com.example.hormigas.inventario.entity.Inventario;
 import com.example.hormigas.inventario.repository.InventarioRepository;
+import com.example.hormigas.inventario.service.AlertaStockService;
 import com.example.hormigas.movimiento.dto.CrearMovimientoDTO;
 import com.example.hormigas.movimiento.dto.MovimientoFiltroDTO;
 import com.example.hormigas.movimiento.dto.MovimientoResponseDTO;
@@ -33,6 +35,7 @@ public class MovimientoService {
     private final UsuarioService usuarioService;
     private final ProductoRepository productoRepository;
     private final MotivoMovimientoRepository motivoRepository;
+    private final AlertaStockService alertaStockService;
 
     public MovimientoService(
             InventarioRepository inventarioRepository,
@@ -40,7 +43,8 @@ public class MovimientoService {
             UsuarioService usuarioService,
             SucursalRepository sucursalRepository,
             ProductoRepository productoRepository,
-            MotivoMovimientoRepository motivoRepository
+            MotivoMovimientoRepository motivoRepository,
+            AlertaStockService alertaStockService
     ) {
         this.inventarioRepository = inventarioRepository;
         this.movimientoRepository = movimientoRepository;
@@ -48,6 +52,7 @@ public class MovimientoService {
         this.sucursalRepository = sucursalRepository;
         this.productoRepository = productoRepository;
         this.motivoRepository = motivoRepository;
+        this.alertaStockService = alertaStockService;
     }
 
     @Transactional
@@ -97,7 +102,8 @@ public class MovimientoService {
 
         movimientoRepository.save(movimiento);
 
-        return MovimientoMapper.toResponse(movimiento);
+        AlertaStock alerta = alertaStockService.evaluar(inventario);
+        return MovimientoMapper.toResponse(movimiento, alerta);
     }
 
     public List<MovimientoResponseDTO> obtenerMovimientos(MovimientoFiltroDTO filtro) {
@@ -105,7 +111,9 @@ public class MovimientoService {
         List<Movimiento> movimientos = movimientoRepository.findAll(
                 MovimientoSpecification.conFiltros(user.getEmpresa().getId(), filtro)
         );
-        return movimientos.stream().map(MovimientoMapper::toResponse).toList();
+        return movimientos.stream()
+                .map(m -> MovimientoMapper.toResponse(m, null))
+                .toList();
     }
 
 
