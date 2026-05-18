@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Validated
@@ -34,9 +35,12 @@ public class MovimientoController {
             @RequestParam(required = false) Long sucursalId,
             @RequestParam(required = false) Long productoId,
             @RequestParam(required = false) Long inventarioId,
-            @RequestParam(required = false)TipoMovimiento tipo
-            ) {
-        MovimientoFiltroDTO filtro = new MovimientoFiltroDTO(sucursalId, productoId, inventarioId, tipo);
+            @RequestParam(required = false) TipoMovimiento tipo,
+            @RequestParam(required = false) LocalDateTime fechaInicio,
+            @RequestParam(required = false) LocalDateTime fechaFin
+    ) {
+        MovimientoFiltroDTO filtro = new MovimientoFiltroDTO(
+                sucursalId, productoId, inventarioId, tipo, fechaInicio, fechaFin);
         return movimientoService.obtenerMovimientos(filtro);
     }
 

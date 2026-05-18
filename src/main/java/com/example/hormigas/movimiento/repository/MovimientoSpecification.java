@@ -59,6 +59,18 @@ public class MovimientoSpecification {
                 );
             }
 
+            if (filtro.fechaInicio() != null) {
+                predicates = cb.and(predicates,
+                        cb.greaterThanOrEqualTo(root.get("fecha"), filtro.fechaInicio())
+                );
+            }
+
+            if (filtro.fechaFin() != null) {
+                predicates = cb.and(predicates,
+                        cb.lessThanOrEqualTo(root.get("fecha"), filtro.fechaFin())
+                );
+            }
+
             return predicates;
         };
     }
