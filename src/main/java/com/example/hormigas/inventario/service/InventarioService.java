@@ -18,6 +18,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -61,6 +62,7 @@ public class InventarioService {
         inventario.setStockActual(dto.stockActual());
         inventario.setStockMinimo(dto.stockMinimo());
         inventario.setStockMaximo(dto.stockMaximo());
+        inventario.setUltimaActualizacion(LocalDateTime.now());
 
         return InventarioMapper.toResponseInventario(inventarioRepository.save(inventario));
     }
@@ -82,6 +84,23 @@ public class InventarioService {
     public void agregarASucursal(Long sucursalId, Long inventarioId) {
         Usuario user = usuarioService.getUsuarioLogueado();
 
+        Inventario inventario = inventarioRepository.findById(inventarioId)
+                .orElseThrow(() -> new EntityNotFoundException("Inventario no encontrado"));
+
+        if (!inventario.getSucursal().getEmpresa().getId().equals(user.getEmpresa().getId())) {
+            throw new IllegalArgumentException("Inventario o sucursal invalidos o no pertenecen a la empresa");
+        }
+
+        boolean yaExiste = inventarioRepository
+                .findBySucursalIdAndProductoId(sucursalId, inventario.getProducto().getId())
+                .isPresent();
+
+        if (yaExiste) {
+            throw new IllegalArgumentException(
+                    "Ya existe un inventario para ese producto en la sucursal destino. Use TRASLADO para mover stock."
+            );
+        }
+
         int filas = inventarioRepository.asignarASucursal(
                 inventarioId,
                 sucursalId,
@@ -92,7 +111,7 @@ public class InventarioService {
             throw new IllegalArgumentException("Inventario o sucursal invalidos o no pertenecen a la empresa");
         }
         if (filas > 1) {
-            throw new IllegalStateException("Error critico: multiples inventarios afectado");
+            throw new IllegalStateException("Error critico: multiples inventarios afectados");
         }
     }
 
