@@ -1,219 +1,246 @@
-# 🐜 Hormigas — Backend API
+# Hormigas — API REST de Inventarios
 
-> API REST del sistema de inventarios Hormigas. Gestiona el modelo multiempresa, autenticación JWT y protección de rutas por roles.
-
----
-
-## 📋 Descripción general
-
-El backend de **Hormigas** es una API REST construida con **Spring Boot** que actúa como capa de persistencia en la nube para las aplicaciones cliente. Implementa una **arquitectura basada en dominio**, gestiona el modelo multiempresa (empresas → sucursales → inventarios → productos) y provee seguridad mediante **JWT + roles**.
-
-La creación de empresas no es libre: un **superusuario** del sistema crea la empresa y automáticamente genera un **usuario administrador** para ella. Desde ese punto, el admin gestiona su propia empresa de forma autónoma.
+API REST multi-empresa para gestión de inventarios. Soporta múltiples empresas, múltiples sucursales por empresa, registro de movimientos con historial completo, traslados atómicos entre sucursales, alertas de stock y reportes.
 
 ---
 
-## 🏗️ Arquitectura
+## Stack
 
-El proyecto sigue una arquitectura orientada al dominio, con separación en capas internas por paquete:
+| Capa | Tecnología |
+|------|------------|
+| Lenguaje | Java 21 |
+| Framework | Spring Boot 3.2.5 |
+| Seguridad | Spring Security + JWT |
+| Persistencia | Spring Data JPA + Hibernate |
+| Base de datos | PostgreSQL |
+| Build | Maven |
 
-```
-┌─────────────────────────────────────┐
-│           Cliente (React Native)    │
-└────────────────┬────────────────────┘
-                 │ HTTP + JWT
-┌────────────────▼────────────────────┐
-│         Controllers (REST)          │  ← entrada de peticiones
-├─────────────────────────────────────┤
-│         Services (lógica)           │  ← reglas de negocio
-├─────────────────────────────────────┤
-│      Repositories (acceso datos)    │  ← Spring Data JPA
-├─────────────────────────────────────┤
-│         Entities / DTOs             │  ← modelo de datos
-├─────────────────────────────────────┤
-│         PostgreSQL                  │  ← base de datos
-└─────────────────────────────────────┘
+---
 
-Infrastructure (transversal):
-  ├── Seguridad JWT (filtros, configuración Spring Security)
-  └── Comandos de arranque (data seeders)
-```
-
-### Modelo de negocio
+## Modelo de dominio
 
 ```
 Superusuario
-  └── crea Empresa + Usuario Admin
+  └── Empresa
+        ├── Usuario (N por empresa, con roles)
+        ├── Producto (N por empresa, con SKU único + precio)
+        ├── MotivoMovimiento (catálogo de razones por empresa)
         └── Sucursal (N por empresa)
-              ├── Inventario (ligado a la sucursal)
-              └── Producto (N por sucursal)
+              └── Inventario (1 por producto/sucursal, con stock min/max)
+                    └── Movimiento (historial completo de cambios de stock)
 ```
 
----
-
-## 📁 Estructura del proyecto
-
-```
-hormigas-backend/
-├── src/main/java/com/hormigas/
-│   ├── {dominio}/                  # Un paquete por cada dominio
-│   │   ├── controller/             # Endpoints REST
-│   │   ├── service/                # Lógica de negocio
-│   │   ├── repository/             # Interfaces JPA
-│   │   ├── entity/                 # Entidades JPA
-│   │   └── dto/                    # Objetos de transferencia
-│   │
-│   └── infrastructure/             # Capa transversal
-│       ├── security/               # JWT, filtros, Spring Security
-│       ├── seeders/                # Comandos al arrancar el sistema
-│       └── user/                   # ⚠️ Ver deuda técnica
-│
-├── src/main/resources/
-│   └── application.properties      # Configuración general
-└── pom.xml
-```
+Todos los datos están scoped a la empresa del usuario autenticado. El frontend no necesita enviar `empresaId`.
 
 ---
 
-## 🛠️ Stack tecnológico
+## Instalación
 
-| Capa | Tecnología |
-|---|---|
-| Lenguaje | Java 21 |
-| Framework | Spring Boot |
-| Seguridad | Spring Security + JWT |
-| Persistencia | Spring Data JPA |
-| Base de datos | PostgreSQL |
-| Gestor de dependencias | Maven |
-
----
-
-## 🔐 Seguridad
-
-La API usa **JWT (JSON Web Token)** para autenticación. Las rutas están protegidas mediante **roles hardcodeados** en la configuración de Spring Security.
-
-| Rol | Descripción |
-|---|---|
-| `SUPER_ADMIN` | Crea empresas y sus usuarios administradores |
-| `ADMIN` | Administra su propia empresa y sucursales |
-| `USUARIO` | Acceso operativo limitado *(en definición)* |
-
-> ⚠️ El esquema de roles actual es funcional pero está hardcodeado. Ver sección de deuda técnica.
-
----
-
-## 📡 Endpoints
-
-### Autenticación
-
-| Método | Ruta | Descripción | Estado |
-|---|---|---|---|
-| `POST` | `/auth/login` | Obtener token JWT | ✅ |
-| `POST` | `/auth/register` | Registro interno *(restringido)* | ✅ |
-
-### Empresas — flujo controlado por Superusuario
-
-| Método | Ruta | Descripción | Estado |
-|---|---|---|---|
-| `POST` | `/empresas` | Crea empresa + usuario admin automáticamente | ✅ |
-| `GET` | `/empresas` | Lista empresas | ✅ |
-| `GET` | `/empresas/{id}` | Detalle de empresa | ✅ |
-| `PUT` | `/empresas/{id}` | Actualizar empresa | ✅ |
-| `DELETE` | `/empresas/{id}` | Eliminar empresa | ✅ |
-
-### Sucursales, Inventarios, Productos, Usuarios — CRUD básico
-
-| Método | Ruta | Descripción | Estado |
-|---|---|---|---|
-| `GET` | `/{recurso}` | Listar | 🔄 En proceso |
-| `GET` | `/{recurso}/{id}` | Detalle | 🔄 En proceso |
-| `POST` | `/{recurso}` | Crear | 🔄 En proceso |
-| `PUT` | `/{recurso}/{id}` | Actualizar | 🔄 En proceso |
-| `DELETE` | `/{recurso}/{id}` | Eliminar | 🔄 En proceso |
-
-> Recursos disponibles: `sucursales`, `inventarios`, `productos`, `usuarios`
-
----
-
-## ⚠️ Deuda técnica
-
-Esta sección documenta de forma honesta las áreas del proyecto con problemas de diseño conocidos y su proyección de mejora.
-
-### 1. Entidad `Usuario` acoplada en `infrastructure`
-
-**Problema:** Por desconocimiento al inicio del proyecto, la entidad `Usuario` y su lógica asociada quedaron dentro del paquete `infrastructure` en lugar de tener su propio dominio.
-
-**Impacto:** Viola el principio de separación por dominio. `infrastructure` debería ser exclusivamente transversal (seguridad, seeders, configuración).
-
-**Solución planeada:** Extraer `Usuario` a su propio paquete de dominio `usuario/` con su `controller`, `service`, `repository`, `entity` y `dto` correspondientes, dejando en `infrastructure` únicamente los filtros JWT y la configuración de Spring Security.
-
----
-
-### 2. Roles hardcodeados
-
-**Problema:** Los roles del sistema (`SUPERUSUARIO`, `ADMIN`, `USUARIO`) están definidos directamente en la configuración de Spring Security, no en base de datos.
-
-**Impacto:** Poca flexibilidad para agregar o modificar roles sin tocar código.
-
-**Solución planeada:** Migrar a un esquema de roles y permisos dinámico, almacenado en base de datos y gestionable desde la API.
-
----
-
-## 🗺️ Roadmap
-
-### ✅ Implementado
-- [x] Autenticación con JWT
-- [x] Protección de rutas por roles
-- [x] Modelo multiempresa (Empresa → Sucursal → Inventario → Producto)
-- [x] Creación de empresa con usuario admin automático vía superusuario
-- [x] CRUD completo de Empresas
-- [x] Seeders de arranque (datos iniciales)
-
-### 🔄 En proceso
-- [ ] CRUD de Sucursales
-- [ ] CRUD de Inventarios
-- [ ] CRUD de Productos
-- [ ] CRUD de Usuarios
-
-### 🔮 Mejoras futuras
-- [ ] Extraer `Usuario` de `infrastructure` a su propio dominio
-- [ ] Sistema de roles dinámico (base de datos)
-- [ ] Endpoints para sincronización batch (soporte offline de los clientes)
-- [ ] Paginación y filtros en listados
-- [ ] Documentación con Swagger / OpenAPI
-- [ ] Tests unitarios e integración
-
----
-
-## ⚙️ Instalación y configuración
-
-**Requisitos previos:** Java 21, Maven, PostgreSQL
+**Requisitos:** Java 21, Maven, PostgreSQL
 
 ```bash
-# Clonar el repositorio
-git clone https://github.com/tu-usuario/hormigas-backend.git
-cd hormigas-backend
+git clone https://github.com/Urielxdov/hormigas.git
+cd hormigas
 ```
 
-Configurar las variables en `src/main/resources/application.properties`:
+Copiar `.env.example` a `.env` y configurar:
 
 ```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/hormigas
-spring.datasource.username=tu_usuario
-spring.datasource.password=tu_password
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=inventarios
+DB_USER=postgres
+DB_PASSWORD=tu_password
 
-spring.jpa.hibernate.ddl-auto=update
+JWT_SECRET=tu_clave_secreta_larga
+JWT_EXPIRATION=86400000
 
-jwt.secret=tu_clave_secreta
-jwt.expiration=86400000
+ADMIN_EMAIL=superadmin@sistema.com
+ADMIN_PASSWORD=tu_password
+ADMIN_NOMBRE=Super Admin
 ```
 
 ```bash
-# Compilar y ejecutar
-mvn spring-boot:run
+# Con Docker (recomendado)
+docker-compose up
+
+# Sin Docker
+./mvnw spring-boot:run
 ```
 
-Al arrancar, los seeders de `infrastructure` crean automáticamente el **superusuario** inicial si no existe.
+Al arrancar, se crea automáticamente el superusuario inicial si no existe.
 
 ---
 
-*Proyecto en desarrollo activo. 🐜*
+## Autenticación
+
+Todos los endpoints requieren JWT en el header:
+
+```
+Authorization: Bearer <token>
+```
+
+**Obtener token:**
+```
+POST /auth/login
+{ "correo": "admin@empresa.com", "password": "contraseña" }
+```
+
+### Roles
+
+| Rol | Capacidades |
+|-----|-------------|
+| `SUPER_ADMIN` | Crea empresas y sus usuarios administradores |
+| `ADMIN` | Administra su empresa, sucursales, productos, inventario |
+| `USUARIO` | Operación diaria: movimientos, consultas |
+
+---
+
+## Endpoints
+
+### Autenticación
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/auth/login` | Obtener JWT |
+
+### Empresas
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/api/empresa/crearConAdmin` | Crear empresa + usuario admin (solo SUPER_ADMIN) |
+| GET | `/api/empresa` | Listar empresas |
+| PUT | `/api/empresa/{id}` | Actualizar empresa |
+| DELETE | `/api/empresa/{id}` | Eliminar empresa |
+
+### Usuarios
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/api/usuario/crear` | Crear usuario en la empresa |
+| GET | `/api/usuario` | Listar usuarios de la empresa |
+| PUT | `/api/usuario/{id}` | Actualizar usuario |
+
+### Sucursales
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/api/sucursal/crear` | Crear sucursal |
+| GET | `/api/sucursal/buscar` | Listar sucursales con filtros |
+| PUT | `/api/sucursal/{id}` | Actualizar sucursal |
+
+### Productos
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/api/producto/crear` | Crear producto (SKU único por empresa) |
+| GET | `/api/producto/buscar` | Listar productos con filtros |
+| PUT | `/api/producto/{id}` | Actualizar producto |
+
+### Inventario
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/api/inventario/crear` | Registrar producto en sucursal con stock inicial |
+| GET | `/api/inventario/porSucursal?sucursalId=` | Inventario de una sucursal |
+
+### Movimientos de stock
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/api/movimiento/crear` | Registrar movimiento (ver tipos abajo) |
+| GET | `/api/movimiento/buscar` | Historial con filtros (sucursal, producto, tipo, fechas) |
+
+**Tipos de movimiento:**
+
+| Tipo | Efecto | Uso |
+|------|--------|-----|
+| `COMPRA` | +stock | Entrada de proveedor |
+| `VENTA` | -stock | Salida por venta |
+| `AJUSTE` | =cantidad | Corrección física (cantidad = nuevo valor absoluto) |
+| `MERMA` | -stock | Robo, daño, caducidad |
+| `DEVOLUCION_CLIENTE` | +stock | Cliente devuelve producto |
+| `DEVOLUCION_PROVEEDOR` | -stock | Devolución al proveedor |
+| `TRASLADO_ENTRADA` | +stock | Llegada de traslado entre sucursales |
+| `TRASLADO_SALIDA` | -stock | Salida de traslado entre sucursales |
+
+> Para traslados entre sucursales usar `POST /api/traslado/crear` en lugar de los tipos `TRASLADO_*` directamente — garantiza atomicidad.
+
+**Alertas en response:** cada movimiento retorna `alerta` con el estado del stock resultante:
+
+```json
+{
+  "stockNuevo": 3,
+  "alerta": {
+    "tipo": "STOCK_BAJO",
+    "mensaje": "Stock actual (3) por debajo del mínimo (5)"
+  }
+}
+```
+
+| tipo | condición |
+|------|-----------|
+| `STOCK_CRITICO` | stock == 0 |
+| `STOCK_BAJO` | stock < stockMinimo |
+| `STOCK_EXCEDIDO` | stock > stockMaximo |
+| `null` | stock en rango normal |
+
+### Traslados atómicos
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/api/traslado/crear` | Mover stock entre sucursales (transaccional) |
+
+Si falla cualquier validación (stock insuficiente en origen, se excedería máximo en destino), ninguna sucursal se modifica.
+
+### Motivos de movimiento
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/api/motivo/crear` | Crear motivo |
+| GET | `/api/motivo` | Listar motivos activos |
+| PUT | `/api/motivo/{id}` | Actualizar motivo |
+
+### Reportes
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/api/reportes/movimientos` | Movimientos paginados por período |
+| GET | `/api/reportes/productos-top` | Ranking de productos por volumen movido |
+| GET | `/api/reportes/valor-inventario` | Valor monetario del inventario por sucursal |
+
+Todos filtran por empresa del usuario logueado. Parámetros comunes: `fechaInicio`, `fechaFin`, `sucursalId`.
+
+---
+
+## Reglas de negocio
+
+- `stockMaximo` se valida en entradas (COMPRA, DEVOLUCION_CLIENTE, TRASLADO_ENTRADA) — error si se excede
+- `stockMinimo` genera alerta en el response cuando se viola, no bloquea la operación
+- `cantidad` siempre debe ser > 0
+- En `AJUSTE`, `cantidad` es el nuevo valor absoluto del stock (no una diferencia)
+- Cada movimiento registra `stockAnterior` y `stockNuevo` para historial inmutable
+- `ultimaActualizacion` del inventario se actualiza automáticamente con cada movimiento
+- El par `(sucursal, producto)` es único en inventario — no puede haber dos registros del mismo producto en la misma sucursal
+
+---
+
+## Estructura del proyecto
+
+```
+src/main/java/com/example/hormigas/
+├── empresa/          — CRUD de empresas
+├── sucursal/         — CRUD de sucursales
+├── producto/         — CRUD de productos + categorías
+├── inventario/       — Stock por sucursal + alertas
+├── movimiento/       — Historial de movimientos
+├── traslado/         — Traslados atómicos entre sucursales
+├── motivo/           — Catálogo de motivos de movimiento
+├── reporte/          — Reportes de negocio
+└── security/         — JWT, usuarios, roles, filtros
+```
+
+---
+
+## Contrato de API para frontend
+
+Ver [`docs/frontend-contract.md`](docs/frontend-contract.md) — documenta todos los endpoints con ejemplos de request/response, tipos de movimiento, manejo de alertas y notas de integración.
+
+---
+
+## Deuda técnica conocida
+
+- Roles sin `@PreAuthorize` granular por endpoint — seguridad a nivel de ruta global
+- Sin paginación en la mayoría de listados (solo en reportes)
+- Sin Swagger/OpenAPI generado automáticamente
+- Tests solo en `AlertaStockService` — falta cobertura de servicios e integración
