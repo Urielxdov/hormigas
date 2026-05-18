@@ -5,10 +5,13 @@ import com.example.hormigas.movimiento.dto.MovimientoFiltroDTO;
 import com.example.hormigas.movimiento.dto.MovimientoResponseDTO;
 import com.example.hormigas.movimiento.entity.TipoMovimiento;
 import com.example.hormigas.movimiento.service.MovimientoService;
+import jakarta.validation.Valid;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/movimiento")
 public class MovimientoController {
@@ -22,7 +25,7 @@ public class MovimientoController {
 
 
     @PostMapping("/crear")
-    public MovimientoResponseDTO createMovimiento (@RequestBody CrearMovimientoDTO dto) {
+    public MovimientoResponseDTO createMovimiento (@Valid @RequestBody CrearMovimientoDTO dto) {
         return movimientoService.registrarMovimiento(dto);
     }
 

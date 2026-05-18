@@ -67,6 +67,11 @@ public class MovimientoService {
         int nuevoStock = tipo.aplicar(stockActual, dto.cantidad());
 
         if (nuevoStock < 0) throw new IllegalArgumentException("Stock insuficiente");
+        if (tipo.esEntrada() && nuevoStock > inventario.getStockMaximo()) {
+            throw new IllegalArgumentException(
+                    "Stock resultante (" + nuevoStock + ") excede el máximo permitido (" + inventario.getStockMaximo() + ")"
+            );
+        }
 
         // Actualizacion del inventraio
         inventario.setStockActual(nuevoStock);
