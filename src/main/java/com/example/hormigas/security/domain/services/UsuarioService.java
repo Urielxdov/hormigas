@@ -147,8 +147,14 @@ public class UsuarioService implements UserDetailsService {
 
     // Obtener todos los usuarios activos
     public List<UsuarioResponseDTO> getAllUsuarios() {
-        List<Usuario> usuarios = usuarioRepository.findAllByActivo(true);
-        logger.info("[USER] : Retrieved all active users. Total: {}", usuarios.size());
+        Usuario usuarioActual = getUsuarioLogueado();
+        List<Usuario> usuarios;
+        if (tieneRol(usuarioActual, Role.SUPER_ADMIN)) {
+            usuarios = usuarioRepository.findAllByActivo(true);
+        } else {
+            usuarios = usuarioRepository.findAllByActivoAndEmpresaId(true, usuarioActual.getEmpresa().getId());
+        }
+        logger.info("[USER] : Retrieved users. Total: {}", usuarios.size());
         return usuarios.stream()
                 .map(UsuarioMapper::toResponse)
                 .toList();

@@ -9,7 +9,9 @@ public class MapperSucursal {
                 sucursal.getId(),
                 sucursal.getNombre(),
                 sucursal.getDireccion(),
-                sucursal.isActiva()
+                sucursal.isActiva(),
+                sucursal.getUsuario() != null ? sucursal.getUsuario().getId() : null,
+                sucursal.getUsuario() != null ? sucursal.getUsuario().getNombre() : null
         );
     }
 }

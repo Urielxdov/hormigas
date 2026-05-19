@@ -42,6 +42,11 @@ public class SucursalService {
         sucursal.setDireccion(dto.direccion());
         sucursal.setEmpresa(admin.getEmpresa());
 
+        if (dto.encargadoId() != null) {
+            Usuario encargado = usuarioService.obtenerUsuario(dto.encargadoId());
+            sucursal.setUsuario(encargado);
+        }
+
         sucursal = sucursalRepository.save(sucursal);
 
         return MapperSucursal.toResponse(sucursal);

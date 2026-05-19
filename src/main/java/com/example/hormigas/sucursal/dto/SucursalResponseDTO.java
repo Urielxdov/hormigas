@@ -4,6 +4,8 @@ public record SucursalResponseDTO(
         Long id,
         String nombre,
         String direccion,
-        boolean activa
+        boolean activa,
+        Long encargadoId,
+        String encargadoNombre
 ) {
 }
