@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface MotivoMovimientoRepository extends JpaRepository<MotivoMovimiento, Long> {
     List<MotivoMovimiento> findByEmpresa(Empresa empresa);
+    List<MotivoMovimiento> findByEmpresaAndActivoTrue(Empresa empresa);
 }
