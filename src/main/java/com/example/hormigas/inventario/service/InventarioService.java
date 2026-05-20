@@ -97,6 +97,16 @@ public class InventarioService {
     }
 
 
+    public List<InventarioResponseDTO> obtenerStockBajo() {
+        Usuario user = usuarioService.getUsuarioLogueado();
+        List<Inventario> inventarios = inventarioRepository.findAll(
+            InventarioSpecification.stockBajoPorEmpresa(user.getEmpresa().getId())
+        );
+        return inventarios.stream()
+            .map(InventarioMapper::toResponseInventario)
+            .toList();
+    }
+
     // Ver historial de inventario (Historial de movmientos)
 
 }

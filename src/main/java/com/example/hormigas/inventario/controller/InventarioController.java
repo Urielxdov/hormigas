@@ -27,4 +27,9 @@ public class InventarioController {
     public List<InventarioResponseDTO> porSucursal(@RequestParam Long sucursalId) {
         return inventarioService.obtenerInventario(new InventarioFiltroDTO(sucursalId, null));
     }
+
+    @GetMapping("/stockBajo")
+    public List<InventarioResponseDTO> stockBajo() {
+        return inventarioService.obtenerStockBajo();
+    }
 }

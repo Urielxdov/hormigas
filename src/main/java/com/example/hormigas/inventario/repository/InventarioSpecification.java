@@ -45,4 +45,17 @@ public class InventarioSpecification {
             return predicates;
         });
     }
+
+    public static Specification<Inventario> stockBajoPorEmpresa(Long empresaId) {
+        return (root, query, cb) -> {
+            var empresa = cb.equal(
+                root.get("producto").get("empresa").get("id"), empresaId
+            );
+            var stockBajo = cb.lessThanOrEqualTo(
+                root.get("stockActual"), root.get("stockMinimo")
+            );
+            var tieneMinimo = cb.isNotNull(root.get("stockMinimo"));
+            return cb.and(empresa, tieneMinimo, stockBajo);
+        };
+    }
 }
