@@ -4,5 +4,6 @@ public record CreateUsuarioDTO(
         String correo,
         String password,
         String nombre,
-        Long empresaId
+        Long empresaId,
+        Long sucursalId
 ) {}

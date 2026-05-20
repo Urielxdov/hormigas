@@ -67,6 +67,7 @@ public class TokenServiceImpl implements TokenService {
                 .claim("roles", roles)
                 .claim("id", usuario.getId())        // ejemplo: info extra
                 .claim("empresaId", usuario.getEmpresa().getId()) // info de empresa
+                .claim("sucursalId", usuario.getSucursal() != null ? usuario.getSucursal().getId() : null)
                 .build();
 
         var jwtEncoderParameters = JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims);

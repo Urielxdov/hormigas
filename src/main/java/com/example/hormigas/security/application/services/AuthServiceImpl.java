@@ -8,6 +8,7 @@ import com.example.hormigas.security.domain.repository.UsuarioRepository;
 import com.example.hormigas.security.domain.services.UsuarioService;
 import com.example.hormigas.security.domain.services.AuthService;
 import com.example.hormigas.security.domain.services.TokenService;
+import com.example.hormigas.sucursal.repository.SucursalRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.Primary;
@@ -28,19 +29,22 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationConfiguration authenticationConfiguration;
     private final TokenService tokenService;
     private final UsuarioService usuarioService;
+    private final SucursalRepository sucursalRepository;
 
     public AuthServiceImpl(
             UsuarioRepository usuarioRepository,
             PasswordEncoder passwordEncoder,
             AuthenticationConfiguration authenticationConfiguration,
             TokenService tokenService,
-            UsuarioService usuarioService
+            UsuarioService usuarioService,
+            SucursalRepository sucursalRepository
     ){
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationConfiguration = authenticationConfiguration;
         this.tokenService = tokenService;
         this.usuarioService = usuarioService;
+        this.sucursalRepository = sucursalRepository;
     }
 
 
@@ -73,6 +77,10 @@ public class AuthServiceImpl implements AuthService {
     public void createUser(CreateUsuarioDTO createUserDto) {
         final Usuario createUsuario = AuthMapper.fromDto(createUserDto);
         createUsuario.setPasswordHash(passwordEncoder.encode(createUserDto.password()));
+        if (createUserDto.sucursalId() != null) {
+            sucursalRepository.findById(createUserDto.sucursalId())
+                    .ifPresent(createUsuario::setSucursal);
+        }
         final Usuario usuario = usuarioRepository.save(createUsuario);
         logger.info("[USER] : User succesfully created with id {}", usuario.getId());
     }

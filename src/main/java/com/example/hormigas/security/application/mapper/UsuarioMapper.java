@@ -21,7 +21,8 @@ public class UsuarioMapper {
                 usuario.correo(),
                 usuario.password(),
                 usuario.nombre(),
-                id
+                id,
+                null
         );
     }
 }

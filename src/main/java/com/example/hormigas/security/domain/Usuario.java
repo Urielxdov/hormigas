@@ -1,6 +1,7 @@
 package com.example.hormigas.security.domain;
 
 import com.example.hormigas.empresa.entity.Empresa;
+import com.example.hormigas.sucursal.entity.Sucursal;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,6 +27,13 @@ public class Usuario implements UserDetails {
             foreignKey = @ForeignKey(name = "fk_usuario_empresa")
     )
     private Empresa empresa;
+
+    @ManyToOne(optional = true)
+    @JoinColumn(
+            name = "sucursal_id",
+            foreignKey = @ForeignKey(name = "fk_usuario_sucursal")
+    )
+    private Sucursal sucursal;
 
     @Column(nullable = false)
     private String nombre;
@@ -129,6 +137,14 @@ public class Usuario implements UserDetails {
 
     public void setEmpresa(Empresa empresa) {
         this.empresa = empresa;
+    }
+
+    public Sucursal getSucursal() {
+        return sucursal;
+    }
+
+    public void setSucursal(Sucursal sucursal) {
+        this.sucursal = sucursal;
     }
 
     public String getNombre() {
