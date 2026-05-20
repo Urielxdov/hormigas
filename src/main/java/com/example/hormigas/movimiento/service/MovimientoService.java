@@ -5,6 +5,8 @@ import com.example.hormigas.inventario.repository.InventarioRepository;
 import com.example.hormigas.movimiento.dto.CrearMovimientoDTO;
 import com.example.hormigas.movimiento.dto.MovimientoFiltroDTO;
 import com.example.hormigas.movimiento.dto.MovimientoResponseDTO;
+import com.example.hormigas.movimiento.dto.VentaBatchDTO;
+import com.example.hormigas.movimiento.dto.VentaBatchItemDTO;
 import com.example.hormigas.motivo.entity.MotivoMovimiento;
 import com.example.hormigas.movimiento.entity.Movimiento;
 import com.example.hormigas.movimiento.entity.TipoMovimiento;
@@ -22,6 +24,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -80,6 +83,47 @@ public class MovimientoService {
         movimientoRepository.save(movimiento);
 
         return MovimientoMapper.toResponse(movimiento);
+    }
+
+    @Transactional
+    public List<MovimientoResponseDTO> registrarVentaBatch(VentaBatchDTO dto) {
+        Usuario user = usuarioService.getUsuarioLogueado();
+        Long sucursalId = user.getSucursal().getId();
+
+        List<MovimientoResponseDTO> resultados = new ArrayList<>();
+
+        for (VentaBatchItemDTO item : dto.items()) {
+            Inventario inventario = inventarioRepository
+                    .findBySucursalIdAndProductoId(sucursalId, item.productoId())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Inventario no encontrado para productoId=" + item.productoId()
+                    ));
+
+            int stockActual = inventario.getStockActual();
+            int nuevoStock = TipoMovimiento.VENTA.aplicar(stockActual, item.cantidad());
+
+            if (nuevoStock < 0) throw new IllegalArgumentException(
+                    "Stock insuficiente para productoId=" + item.productoId()
+            );
+
+            inventario.setStockActual(nuevoStock);
+            inventarioRepository.save(inventario);
+
+            Movimiento movimiento = new Movimiento();
+            movimiento.setTipoMovimiento(TipoMovimiento.VENTA);
+            movimiento.setCantidad(item.cantidad());
+            movimiento.setStockAnterior(stockActual);
+            movimiento.setStockNuevo(nuevoStock);
+            movimiento.setUsuario(user);
+            movimiento.setInventario(inventario);
+            movimiento.setReferencia(dto.referencia());
+            movimiento.setFecha(LocalDateTime.now());
+            movimientoRepository.save(movimiento);
+
+            resultados.add(MovimientoMapper.toResponse(movimiento));
+        }
+
+        return resultados;
     }
 
     public List<MovimientoResponseDTO> obtenerMovimientos(MovimientoFiltroDTO filtro) {

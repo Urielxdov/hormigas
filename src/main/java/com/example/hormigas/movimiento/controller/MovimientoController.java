@@ -3,6 +3,7 @@ package com.example.hormigas.movimiento.controller;
 import com.example.hormigas.movimiento.dto.CrearMovimientoDTO;
 import com.example.hormigas.movimiento.dto.MovimientoFiltroDTO;
 import com.example.hormigas.movimiento.dto.MovimientoResponseDTO;
+import com.example.hormigas.movimiento.dto.VentaBatchDTO;
 import com.example.hormigas.movimiento.entity.TipoMovimiento;
 import com.example.hormigas.movimiento.service.MovimientoService;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,11 @@ public class MovimientoController {
     @PostMapping("/crear")
     public MovimientoResponseDTO createMovimiento (@RequestBody CrearMovimientoDTO dto) {
         return movimientoService.registrarMovimiento(dto);
+    }
+
+    @PostMapping("/venta/batch")
+    public List<MovimientoResponseDTO> registrarVentaBatch(@RequestBody VentaBatchDTO dto) {
+        return movimientoService.registrarVentaBatch(dto);
     }
 
     @GetMapping("/buscar")
