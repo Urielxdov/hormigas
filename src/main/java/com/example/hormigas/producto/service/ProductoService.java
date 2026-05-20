@@ -2,8 +2,10 @@ package com.example.hormigas.producto.service;
 
 import com.example.hormigas.empresa.entity.Empresa;
 import com.example.hormigas.empresa.repository.EmpresaRepository;
+import com.example.hormigas.inventario.repository.InventarioRepository;
 import com.example.hormigas.producto.dto.NuevoProductoDTO;
 import com.example.hormigas.producto.dto.ProductoActualizadoDTO;
+import com.example.hormigas.producto.dto.ProductoConStockDTO;
 import com.example.hormigas.producto.dto.ProductoResponseDTO;
 import com.example.hormigas.producto.entity.Producto;
 import com.example.hormigas.producto.mapper.ProductoMapper;
@@ -15,18 +17,23 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 
 @Service
 public class ProductoService {
     private final ProductoRepository productoRepository;
     private final UsuarioService usuarioService;
+    private final InventarioRepository inventarioRepository;
 
     public ProductoService(
             ProductoRepository productoRepository,
-            UsuarioService usuarioService
+            UsuarioService usuarioService,
+            InventarioRepository inventarioRepository
     ) {
         this.productoRepository = productoRepository;
         this.usuarioService = usuarioService;
+        this.inventarioRepository = inventarioRepository;
     }
     // Crear producto
     public ProductoResponseDTO crearProducto(NuevoProductoDTO dto) {
@@ -89,6 +96,23 @@ public class ProductoService {
         return productoRepository
                 .findByEmpresaIdAndActivoTrue(user.getEmpresa().getId(), pageable)
                 .map(ProductoMapper::toResponse);
+    }
+
+    // Buscar productos con stock en sucursal
+    public List<ProductoConStockDTO> buscarConStock(String q, Long sucursalId) {
+        Usuario user = usuarioService.getUsuarioLogueado();
+        Long empresaId = user.getEmpresa().getId();
+        List<Producto> productos = productoRepository.buscarPorNombreOSku(
+                q == null ? "" : q, empresaId
+        );
+        return productos.stream().map(p ->
+                inventarioRepository
+                        .findBySucursalIdAndProductoId(sucursalId, p.getId())
+                        .map(inv -> new ProductoConStockDTO(
+                                p.getId(), inv.getId(), p.getNombre(), p.getSku(), p.getPrecio(), inv.getStockActual()
+                        ))
+                        .orElse(new ProductoConStockDTO(p.getId(), null, p.getNombre(), p.getSku(), p.getPrecio(), 0))
+        ).toList();
     }
 
 }

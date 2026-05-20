@@ -35,5 +35,14 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             @Param("empresaId") Long empresaId
     );
 
+    @Query("""
+        SELECT p FROM Producto p
+        WHERE p.empresa.id = :empresaId
+        AND p.activo = true
+        AND (LOWER(p.nombre) LIKE LOWER(CONCAT('%', :q, '%'))
+          OR LOWER(p.sku) LIKE LOWER(CONCAT('%', :q, '%')))
+        ORDER BY p.nombre ASC
+    """)
+    List<Producto> buscarPorNombreOSku(@Param("q") String q, @Param("empresaId") Long empresaId);
 
 }
