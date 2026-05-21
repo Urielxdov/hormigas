@@ -61,6 +61,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/usuario/create").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
                 .requestMatchers("/api/usuario/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
 
+                .requestMatchers("/api/sucursal/**").hasAuthority("ROLE_ADMIN")
+
                 // 4. Cualquier otra cosa logueado
                 .anyRequest().authenticated()
             )
