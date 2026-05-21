@@ -45,13 +45,15 @@ public class InventarioService {
     public InventarioResponseDTO crear(CrearInventarioDTO dto) {
         Usuario user = usuarioService.getUsuarioLogueado();
 
-        Sucursal sucursal = sucursalRepository.findById(dto.sucursalId())
-                .orElseThrow(() -> new EntityNotFoundException("No existe la sucursal"));
+        if (user.getSucursal() == null) {
+            throw new IllegalStateException("El usuario no tiene sucursal asignada");
+        }
+        Sucursal sucursal = user.getSucursal();
 
         Producto producto = productoRepository.findById(dto.productoId())
                 .orElseThrow(() -> new EntityNotFoundException("No se encontro el producto"));
 
-        if(!user.getEmpresa().equals(sucursal.getEmpresa()) || !user.getEmpresa().equals(producto.getEmpresa())) {
+        if (!user.getEmpresa().equals(producto.getEmpresa())) {
             throw new IllegalArgumentException("Parametros invalidos");
         }
 

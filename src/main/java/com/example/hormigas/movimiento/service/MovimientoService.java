@@ -54,9 +54,14 @@ public class MovimientoService {
     public MovimientoResponseDTO registrarMovimiento(CrearMovimientoDTO dto) {
         Usuario user = usuarioService.getUsuarioLogueado();
 
+        if (user.getSucursal() == null) {
+            throw new IllegalStateException("El usuario no tiene sucursal asignada");
+        }
+        Long sucursalId = user.getSucursal().getId();
+
         // Se valida la existencia del inventario
         Inventario inventario = inventarioRepository
-                .findBySucursalIdAndProductoId(dto.sucursalId(), dto.productoId())
+                .findBySucursalIdAndProductoId(sucursalId, dto.productoId())
                 .orElseThrow(() -> new EntityNotFoundException("Inventario no encontrado"));
 
         // El tipo de movimiento es un enum
