@@ -58,7 +58,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/empresa/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
 
                 .requestMatchers("/api/usuario/list").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
-                .requestMatchers("/api/usuario/create").hasAuthority("ROLE_ADMIN")
+                .requestMatchers("/api/usuario/create").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
                 .requestMatchers("/api/usuario/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
 
                 // 4. Cualquier otra cosa logueado
