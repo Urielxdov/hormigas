@@ -1,7 +1,5 @@
 package com.example.hormigas.producto.service;
 
-import com.example.hormigas.empresa.entity.Empresa;
-import com.example.hormigas.empresa.repository.EmpresaRepository;
 import com.example.hormigas.inventario.repository.InventarioRepository;
 import com.example.hormigas.producto.dto.NuevoProductoDTO;
 import com.example.hormigas.producto.dto.ProductoActualizadoDTO;
@@ -12,6 +10,7 @@ import com.example.hormigas.producto.mapper.ProductoMapper;
 import com.example.hormigas.producto.repository.ProductoRepository;
 import com.example.hormigas.security.domain.Usuario;
 import com.example.hormigas.security.domain.services.UsuarioService;
+import com.example.hormigas.sucursal.repository.SucursalRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,15 +24,18 @@ public class ProductoService {
     private final ProductoRepository productoRepository;
     private final UsuarioService usuarioService;
     private final InventarioRepository inventarioRepository;
+    private final SucursalRepository sucursalRepository;
 
     public ProductoService(
             ProductoRepository productoRepository,
             UsuarioService usuarioService,
-            InventarioRepository inventarioRepository
+            InventarioRepository inventarioRepository,
+            SucursalRepository sucursalRepository
     ) {
         this.productoRepository = productoRepository;
         this.usuarioService = usuarioService;
         this.inventarioRepository = inventarioRepository;
+        this.sucursalRepository = sucursalRepository;
     }
     // Crear producto
     public ProductoResponseDTO crearProducto(NuevoProductoDTO dto) {
@@ -102,6 +104,10 @@ public class ProductoService {
     public List<ProductoConStockDTO> buscarConStock(String q, Long sucursalId) {
         Usuario user = usuarioService.getUsuarioLogueado();
         Long empresaId = user.getEmpresa().getId();
+
+        sucursalRepository.findByIdAndEmpresaId(sucursalId, empresaId)
+                .orElseThrow(() -> new EntityNotFoundException("Sucursal no encontrada en esta empresa"));
+
         List<Producto> productos = productoRepository.buscarPorNombreOSku(
                 q == null ? "" : q, empresaId
         );

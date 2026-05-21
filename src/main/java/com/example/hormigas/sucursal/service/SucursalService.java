@@ -44,6 +44,9 @@ public class SucursalService {
 
         if (dto.encargadoId() != null) {
             Usuario encargado = usuarioService.obtenerUsuario(dto.encargadoId());
+            if (!encargado.getEmpresa().getId().equals(admin.getEmpresa().getId())) {
+                throw new IllegalArgumentException("El encargado no pertenece a la misma empresa");
+            }
             sucursal.setUsuario(encargado);
         }
 

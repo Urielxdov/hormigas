@@ -35,12 +35,15 @@ public class MotivoMovimientoController {
     @PutMapping("/{id}")
     public MotivoMovimientoResponse actualizar(
             @PathVariable Long id,
-            @RequestBody ActualizarMotivoDTO dto) {
-        return motivoMovimientoService.actualizar(id, dto);
+            @RequestBody ActualizarMotivoDTO dto,
+            @AuthenticationPrincipal Usuario usuario) {
+        return motivoMovimientoService.actualizar(id, dto, usuario);
     }
 
     @DeleteMapping("/{id}")
-    public void desactivar(@PathVariable Long id) {
-        motivoMovimientoService.desactivar(id);
+    public void desactivar(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Usuario usuario) {
+        motivoMovimientoService.desactivar(id, usuario);
     }
 }

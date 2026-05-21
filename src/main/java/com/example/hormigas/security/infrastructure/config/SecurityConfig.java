@@ -52,7 +52,7 @@ public class SecurityConfig {
                 // 2. Reglas específicas (SIEMPRE ARRIBA)
                 .requestMatchers("/api/empresa/create").hasAuthority("ROLE_SUPER_ADMIN")
                 .requestMatchers("/api/empresa/delete/**").hasAuthority("ROLE_SUPER_ADMIN")
-                .requestMatchers("/api/empresa/all").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+                .requestMatchers("/api/empresa/all").hasAuthority("ROLE_SUPER_ADMIN")
 
                 // 3. Regla genérica (SIEMPRE AL FINAL de su grupo)
                 .requestMatchers("/api/empresa/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")

@@ -40,15 +40,17 @@ public class MotivoMovimientoService {
                 .toList();
     }
 
-    public void desactivar(Long id) {
-        MotivoMovimiento motivo = motivoMovimientoRepository.findById(id)
+    public void desactivar(Long id, Usuario usuario) {
+        MotivoMovimiento motivo = motivoMovimientoRepository
+                .findByIdAndEmpresaId(id, usuario.getEmpresa().getId())
                 .orElseThrow(() -> new EntityNotFoundException("No existe el motivo solicitado"));
         motivo.setActivo(false);
         motivoMovimientoRepository.save(motivo);
     }
 
-    public MotivoMovimientoResponse actualizar(Long id, ActualizarMotivoDTO dto) {
-        MotivoMovimiento motivo = motivoMovimientoRepository.findById(id)
+    public MotivoMovimientoResponse actualizar(Long id, ActualizarMotivoDTO dto, Usuario usuario) {
+        MotivoMovimiento motivo = motivoMovimientoRepository
+                .findByIdAndEmpresaId(id, usuario.getEmpresa().getId())
                 .orElseThrow(() -> new EntityNotFoundException("No existe el movimiento a actualizar"));
         motivo.setNombre(dto.nombre());
         motivo.setDescripcion(dto.descripcion());
