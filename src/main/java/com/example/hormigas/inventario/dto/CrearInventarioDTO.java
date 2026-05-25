@@ -1,9 +1,12 @@
 package com.example.hormigas.inventario.dto;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+
 public record CrearInventarioDTO(
-        Long sucursalId,
-        Long productoId,
+        @NotNull Long sucursalId,
+        @NotNull Long productoId,
         int stockActual,
-        Integer stockMinimo,
-        int stockMaximo
+        @PositiveOrZero Integer stockMinimo,
+        @PositiveOrZero int stockMaximo
 ) {}

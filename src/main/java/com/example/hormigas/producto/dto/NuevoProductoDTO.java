@@ -1,11 +1,13 @@
 package com.example.hormigas.producto.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
+
 import java.math.BigDecimal;
 
 public record NuevoProductoDTO(
-        String nombre,
+        @NotBlank String nombre,
         String descripcion,
-        String sku,
-        BigDecimal precio
-) {
-}
+        @NotBlank String sku,
+        @PositiveOrZero BigDecimal precio
+) {}

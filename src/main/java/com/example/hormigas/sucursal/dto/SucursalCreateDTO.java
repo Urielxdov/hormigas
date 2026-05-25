@@ -1,7 +1,9 @@
 package com.example.hormigas.sucursal.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public record SucursalCreateDTO(
-        String nombre,
+        @NotBlank String nombre,
         String direccion,
         Long encargadoId
 ) {}

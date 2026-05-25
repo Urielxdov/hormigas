@@ -1,8 +1,10 @@
 package com.example.hormigas.empresa.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public record EmpresaCreateDTO(
-    String nombre,
-    String rfc,
-    String direccion,
-    String telefono
+        @NotBlank String nombre,
+        String rfc,
+        String direccion,
+        String telefono
 ) {}
