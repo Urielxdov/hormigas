@@ -9,5 +9,6 @@ public record NuevoProductoDTO(
         @NotBlank String nombre,
         String descripcion,
         @NotBlank String sku,
-        @PositiveOrZero BigDecimal precio
+        @PositiveOrZero BigDecimal precio,
+        String categoria
 ) {}

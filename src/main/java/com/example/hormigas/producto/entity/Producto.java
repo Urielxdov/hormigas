@@ -44,6 +44,9 @@ public class Producto {
     @Column(precision = 10, scale = 2)
     private BigDecimal precio;
 
+    @Column(nullable = true)
+    private String categoriaTexto;
+
     @Column(nullable = false)
     private boolean activo = true;
 
@@ -107,5 +110,13 @@ public class Producto {
 
     public void setPrecio(BigDecimal precio) {
         this.precio = precio;
+    }
+
+    public String getCategoriaTexto() {
+        return categoriaTexto;
+    }
+
+    public void setCategoriaTexto(String categoriaTexto) {
+        this.categoriaTexto = categoriaTexto;
     }
 }

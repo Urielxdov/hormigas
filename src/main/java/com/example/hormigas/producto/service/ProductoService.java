@@ -50,6 +50,7 @@ public class ProductoService {
 
         producto.setDescripcion(dto.descripcion());
         producto.setActivo(true);
+        producto.setCategoriaTexto(dto.categoria());
 
         // Obligatorio
         producto.setNombre(dto.nombre());

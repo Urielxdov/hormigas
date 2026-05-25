@@ -43,6 +43,12 @@ public class GlobalExceptionHandler {
         return new ErrorResponse("Campos inválidos: " + fields, HttpStatus.BAD_REQUEST.value());
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleRuntime(RuntimeException ex) {
+        return new ErrorResponse(ex.getMessage(), HttpStatus.CONFLICT.value());
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleGeneric(Exception ex) {
