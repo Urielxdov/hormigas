@@ -7,6 +7,7 @@ import com.example.hormigas.producto.dto.ProductoConStockDTO;
 import com.example.hormigas.producto.dto.ProductoResponseDTO;
 import com.example.hormigas.producto.entity.Producto;
 import com.example.hormigas.producto.mapper.ProductoMapper;
+import com.example.hormigas.producto.repository.CategoriaRepository;
 import com.example.hormigas.producto.repository.ProductoRepository;
 import com.example.hormigas.security.domain.Usuario;
 import com.example.hormigas.security.domain.services.UsuarioService;
@@ -22,17 +23,20 @@ import java.util.List;
 @Service
 public class ProductoService {
     private final ProductoRepository productoRepository;
+    private final CategoriaRepository categoriaRepository;
     private final UsuarioService usuarioService;
     private final InventarioRepository inventarioRepository;
     private final SucursalRepository sucursalRepository;
 
     public ProductoService(
             ProductoRepository productoRepository,
+            CategoriaRepository categoriaRepository,
             UsuarioService usuarioService,
             InventarioRepository inventarioRepository,
             SucursalRepository sucursalRepository
     ) {
         this.productoRepository = productoRepository;
+        this.categoriaRepository = categoriaRepository;
         this.usuarioService = usuarioService;
         this.inventarioRepository = inventarioRepository;
         this.sucursalRepository = sucursalRepository;
@@ -50,7 +54,16 @@ public class ProductoService {
 
         producto.setDescripcion(dto.descripcion());
         producto.setActivo(true);
-        producto.setCategoriaTexto(dto.categoria());
+
+        if (dto.categoriaId() != null) {
+            categoriaRepository.findByIdAndEmpresaId(dto.categoriaId(), user.getEmpresa().getId())
+                    .ifPresent(cat -> {
+                        producto.setCategoria(cat);
+                        producto.setCategoriaTexto(cat.getNombre());
+                    });
+        } else if (dto.categoria() != null) {
+            producto.setCategoriaTexto(dto.categoria());
+        }
 
         // Obligatorio
         producto.setNombre(dto.nombre());

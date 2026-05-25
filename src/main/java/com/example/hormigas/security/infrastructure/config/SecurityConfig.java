@@ -63,6 +63,11 @@ public class SecurityConfig {
 
                 .requestMatchers("/api/sucursal/**").hasAuthority("ROLE_ADMIN")
 
+                // Categorías: admin gestiona, todos pueden leer
+                .requestMatchers("/api/categoria/nueva").hasAuthority("ROLE_ADMIN")
+                .requestMatchers("/api/categoria/*/toggle").hasAuthority("ROLE_ADMIN")
+                .requestMatchers("/api/categoria/**").authenticated()
+
                 // 4. Cualquier otra cosa logueado
                 .anyRequest().authenticated()
             )

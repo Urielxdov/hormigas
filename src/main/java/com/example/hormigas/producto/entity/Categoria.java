@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 @Entity
 public class Categoria {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
@@ -43,6 +44,10 @@ public class Categoria {
 
     public boolean isActivo() {
         return activo;
+    }
+
+    public void setEmpresa(Empresa empresa) {
+        this.empresa = empresa;
     }
 
     public void setNombre(String nombre) {
