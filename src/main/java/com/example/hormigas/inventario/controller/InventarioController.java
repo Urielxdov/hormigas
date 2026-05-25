@@ -4,8 +4,6 @@ import com.example.hormigas.inventario.dto.CrearInventarioDTO;
 import com.example.hormigas.inventario.dto.InventarioFiltroDTO;
 import com.example.hormigas.inventario.dto.InventarioResponseDTO;
 import com.example.hormigas.inventario.service.InventarioService;
-import com.example.hormigas.security.domain.Usuario;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,8 +24,7 @@ public class InventarioController {
     }
 
     @GetMapping("/porSucursal")
-    public List<InventarioResponseDTO> porSucursal(@AuthenticationPrincipal Usuario usuario) {
-        Long sucursalId = usuario.getSucursal() != null ? usuario.getSucursal().getId() : null;
+    public List<InventarioResponseDTO> porSucursal(@RequestParam(required = false) Long sucursalId) {
         return inventarioService.obtenerInventario(new InventarioFiltroDTO(sucursalId, null));
     }
 

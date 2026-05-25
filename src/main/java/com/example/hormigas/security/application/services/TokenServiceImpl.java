@@ -2,7 +2,6 @@ package com.example.hormigas.security.application.services;
 
 import com.example.hormigas.security.domain.Role;
 import com.example.hormigas.security.domain.Usuario;
-import com.example.hormigas.security.domain.Rol;
 import com.example.hormigas.security.domain.repository.UsuarioRepository;
 import com.example.hormigas.security.domain.services.TokenService;
 import org.apache.logging.log4j.LogManager;
@@ -60,15 +59,23 @@ public class TokenServiceImpl implements TokenService {
                 .map(rol -> rol.startsWith("ROLE_") ? rol : "ROLE_" + rol)
                 .collect(Collectors.joining(" "));
 
-        JwtClaimsSet claims = JwtClaimsSet.builder()
+        if (usuario.getEmpresa() == null || usuario.getEmpresa().getId() == null) {
+            throw new IllegalStateException("El usuario no tiene una empresa asociada");
+        }
+
+        JwtClaimsSet.Builder claimsBuilder = JwtClaimsSet.builder()
                 .subject(usuario.getCorreo())
                 .issuedAt(now)
                 .expiresAt(now.plus(expiration, ChronoUnit.MINUTES))
                 .claim("roles", roles)
                 .claim("id", usuario.getId())        // ejemplo: info extra
-                .claim("empresaId", usuario.getEmpresa().getId()) // info de empresa
-                .claim("sucursalId", usuario.getSucursal() != null ? usuario.getSucursal().getId() : null)
-                .build();
+                .claim("empresaId", usuario.getEmpresa().getId()); // info de empresa
+
+        if (usuario.getSucursal() != null && usuario.getSucursal().getId() != null) {
+            claimsBuilder.claim("sucursalId", usuario.getSucursal().getId());
+        }
+
+        JwtClaimsSet claims = claimsBuilder.build();
 
         var jwtEncoderParameters = JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims);
         return this.jwtEncoder.encode(jwtEncoderParameters).getTokenValue();

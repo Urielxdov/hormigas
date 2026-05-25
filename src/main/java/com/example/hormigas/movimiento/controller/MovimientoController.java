@@ -6,8 +6,6 @@ import com.example.hormigas.movimiento.dto.MovimientoResponseDTO;
 import com.example.hormigas.movimiento.dto.VentaBatchDTO;
 import com.example.hormigas.movimiento.entity.TipoMovimiento;
 import com.example.hormigas.movimiento.service.MovimientoService;
-import com.example.hormigas.security.domain.Usuario;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,12 +34,11 @@ public class MovimientoController {
 
     @GetMapping("/buscar")
     public List<MovimientoResponseDTO> obtenerMovimientos(
-            @AuthenticationPrincipal Usuario usuario,
+            @RequestParam(required = false) Long sucursalId,
             @RequestParam(required = false) Long productoId,
             @RequestParam(required = false) Long inventarioId,
             @RequestParam(required = false) TipoMovimiento tipo
             ) {
-        Long sucursalId = usuario.getSucursal() != null ? usuario.getSucursal().getId() : null;
         MovimientoFiltroDTO filtro = new MovimientoFiltroDTO(sucursalId, productoId, inventarioId, tipo);
         return movimientoService.obtenerMovimientos(filtro);
     }

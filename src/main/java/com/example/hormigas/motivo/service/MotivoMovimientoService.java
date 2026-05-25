@@ -8,6 +8,7 @@ import com.example.hormigas.motivo.entity.MotivoMovimiento;
 import com.example.hormigas.motivo.mapper.MotivoMovimientoMapper;
 import com.example.hormigas.motivo.repository.MotivoMovimientoRepository;
 import com.example.hormigas.security.domain.Usuario;
+import com.example.hormigas.security.domain.services.UsuarioService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -17,12 +18,15 @@ import java.util.List;
 public class MotivoMovimientoService {
 
     private final MotivoMovimientoRepository motivoMovimientoRepository;
+    private final UsuarioService usuarioService;
 
-    public MotivoMovimientoService(MotivoMovimientoRepository motivoMovimientoRepository) {
+    public MotivoMovimientoService(MotivoMovimientoRepository motivoMovimientoRepository, UsuarioService usuarioService) {
         this.motivoMovimientoRepository = motivoMovimientoRepository;
+        this.usuarioService = usuarioService;
     }
 
-    public MotivoMovimientoResponse crear(CrearMotivoDTO dto, Usuario usuario) {
+    public MotivoMovimientoResponse crear(CrearMotivoDTO dto) {
+        Usuario usuario = usuarioService.getUsuarioLogueado();
         MotivoMovimiento motivo = new MotivoMovimiento();
         motivo.setNombre(dto.nombre());
         motivo.setDescripcion(dto.descripcion());
@@ -32,7 +36,8 @@ public class MotivoMovimientoService {
         return MotivoMovimientoMapper.toResponse(motivo);
     }
 
-    public List<MotivoMovimientoResponse> listar(Usuario usuario) {
+    public List<MotivoMovimientoResponse> listar() {
+        Usuario usuario = usuarioService.getUsuarioLogueado();
         Empresa empresa = usuario.getEmpresa();
         return motivoMovimientoRepository.findByEmpresaAndActivoTrue(empresa)
                 .stream()
@@ -40,7 +45,8 @@ public class MotivoMovimientoService {
                 .toList();
     }
 
-    public void desactivar(Long id, Usuario usuario) {
+    public void desactivar(Long id) {
+        Usuario usuario = usuarioService.getUsuarioLogueado();
         MotivoMovimiento motivo = motivoMovimientoRepository
                 .findByIdAndEmpresaId(id, usuario.getEmpresa().getId())
                 .orElseThrow(() -> new EntityNotFoundException("No existe el motivo solicitado"));
@@ -48,7 +54,8 @@ public class MotivoMovimientoService {
         motivoMovimientoRepository.save(motivo);
     }
 
-    public MotivoMovimientoResponse actualizar(Long id, ActualizarMotivoDTO dto, Usuario usuario) {
+    public MotivoMovimientoResponse actualizar(Long id, ActualizarMotivoDTO dto) {
+        Usuario usuario = usuarioService.getUsuarioLogueado();
         MotivoMovimiento motivo = motivoMovimientoRepository
                 .findByIdAndEmpresaId(id, usuario.getEmpresa().getId())
                 .orElseThrow(() -> new EntityNotFoundException("No existe el movimiento a actualizar"));

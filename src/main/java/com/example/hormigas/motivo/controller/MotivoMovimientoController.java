@@ -4,8 +4,6 @@ import com.example.hormigas.motivo.dto.ActualizarMotivoDTO;
 import com.example.hormigas.motivo.dto.CrearMotivoDTO;
 import com.example.hormigas.motivo.dto.MotivoMovimientoResponse;
 import com.example.hormigas.motivo.service.MotivoMovimientoService;
-import com.example.hormigas.security.domain.Usuario;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,28 +20,25 @@ public class MotivoMovimientoController {
 
     @PostMapping
     public MotivoMovimientoResponse crear(
-            @RequestBody CrearMotivoDTO dto,
-            @AuthenticationPrincipal Usuario usuario) {
-        return motivoMovimientoService.crear(dto, usuario);
+            @RequestBody CrearMotivoDTO dto) {
+        return motivoMovimientoService.crear(dto);
     }
 
     @GetMapping
-    public List<MotivoMovimientoResponse> listar(@AuthenticationPrincipal Usuario usuario) {
-        return motivoMovimientoService.listar(usuario);
+    public List<MotivoMovimientoResponse> listar() {
+        return motivoMovimientoService.listar();
     }
 
     @PutMapping("/{id}")
     public MotivoMovimientoResponse actualizar(
             @PathVariable Long id,
-            @RequestBody ActualizarMotivoDTO dto,
-            @AuthenticationPrincipal Usuario usuario) {
-        return motivoMovimientoService.actualizar(id, dto, usuario);
+            @RequestBody ActualizarMotivoDTO dto) {
+        return motivoMovimientoService.actualizar(id, dto);
     }
 
     @DeleteMapping("/{id}")
     public void desactivar(
-            @PathVariable Long id,
-            @AuthenticationPrincipal Usuario usuario) {
-        motivoMovimientoService.desactivar(id, usuario);
+            @PathVariable Long id) {
+        motivoMovimientoService.desactivar(id);
     }
 }

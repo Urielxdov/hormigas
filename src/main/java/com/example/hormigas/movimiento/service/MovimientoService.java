@@ -18,6 +18,7 @@ import com.example.hormigas.producto.repository.ProductoRepository;
 import com.example.hormigas.security.domain.Usuario;
 import com.example.hormigas.security.domain.repository.UsuarioRepository;
 import com.example.hormigas.security.domain.services.UsuarioService;
+import com.example.hormigas.sucursal.entity.Sucursal;
 import com.example.hormigas.sucursal.repository.SucursalRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -54,10 +55,13 @@ public class MovimientoService {
     public MovimientoResponseDTO registrarMovimiento(CrearMovimientoDTO dto) {
         Usuario user = usuarioService.getUsuarioLogueado();
 
-        if (user.getSucursal() == null) {
-            throw new IllegalStateException("El usuario no tiene sucursal asignada");
+        Sucursal sucursal = sucursalRepository.findByIdAndEmpresaId(dto.sucursalId(), user.getEmpresa().getId())
+                .orElseThrow(() -> new EntityNotFoundException("No se encontro la sucursal"));
+
+        if (!sucursal.isActiva()) {
+            throw new IllegalArgumentException("La sucursal no esta activa");
         }
-        Long sucursalId = user.getSucursal().getId();
+        Long sucursalId = sucursal.getId();
 
         // Se valida la existencia del inventario
         Inventario inventario = inventarioRepository
@@ -84,6 +88,9 @@ public class MovimientoService {
         movimiento.setStockAnterior(stockActual);
         movimiento.setStockNuevo(nuevoStock);
         movimiento.setUsuario(user);
+        movimiento.setInventario(inventario);
+        movimiento.setReferencia(dto.referencia());
+        movimiento.setFecha(LocalDateTime.now());
 
         movimientoRepository.save(movimiento);
 
@@ -93,7 +100,13 @@ public class MovimientoService {
     @Transactional
     public List<MovimientoResponseDTO> registrarVentaBatch(VentaBatchDTO dto) {
         Usuario user = usuarioService.getUsuarioLogueado();
-        Long sucursalId = user.getSucursal().getId();
+        Sucursal sucursal = sucursalRepository.findByIdAndEmpresaId(dto.sucursalId(), user.getEmpresa().getId())
+                .orElseThrow(() -> new EntityNotFoundException("No se encontro la sucursal"));
+
+        if (!sucursal.isActiva()) {
+            throw new IllegalArgumentException("La sucursal no esta activa");
+        }
+        Long sucursalId = sucursal.getId();
 
         List<MovimientoResponseDTO> resultados = new ArrayList<>();
 

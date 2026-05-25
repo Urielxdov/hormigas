@@ -45,10 +45,12 @@ public class InventarioService {
     public InventarioResponseDTO crear(CrearInventarioDTO dto) {
         Usuario user = usuarioService.getUsuarioLogueado();
 
-        if (user.getSucursal() == null) {
-            throw new IllegalStateException("El usuario no tiene sucursal asignada");
+        Sucursal sucursal = sucursalRepository.findByIdAndEmpresaId(dto.sucursalId(), user.getEmpresa().getId())
+                .orElseThrow(() -> new EntityNotFoundException("No se encontro la sucursal"));
+
+        if (!sucursal.isActiva()) {
+            throw new IllegalArgumentException("La sucursal no esta activa");
         }
-        Sucursal sucursal = user.getSucursal();
 
         Producto producto = productoRepository.findById(dto.productoId())
                 .orElseThrow(() -> new EntityNotFoundException("No se encontro el producto"));
