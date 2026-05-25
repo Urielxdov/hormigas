@@ -3,8 +3,6 @@ package com.example.hormigas.movimiento.mapper;
 import com.example.hormigas.movimiento.dto.MovimientoResponseDTO;
 import com.example.hormigas.movimiento.entity.Movimiento;
 
-import java.time.format.DateTimeFormatter;
-
 public class MovimientoMapper {
 
     public static MovimientoResponseDTO toResponse(Movimiento movimiento) {
@@ -36,7 +34,9 @@ public class MovimientoMapper {
                 movimiento.getCantidad(),
                 usuarioNombre,
                 movimiento.getReferencia(),
-                movimiento.getFecha()
+                movimiento.getFecha(),
+                movimiento.getStockAnterior(),
+                movimiento.getStockNuevo()
         );
     }
 

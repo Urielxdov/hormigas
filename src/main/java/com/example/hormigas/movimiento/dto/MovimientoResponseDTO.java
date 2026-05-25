@@ -14,5 +14,7 @@ public record MovimientoResponseDTO(
         int cantidad,
         String usuarioNombre,
         String referencia,
-        LocalDateTime fecha
+        LocalDateTime fecha,
+        int stockAnterior,
+        int stockNuevo
 ) {}
