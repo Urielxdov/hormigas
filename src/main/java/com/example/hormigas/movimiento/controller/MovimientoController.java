@@ -7,6 +7,10 @@ import com.example.hormigas.movimiento.dto.VentaBatchDTO;
 import com.example.hormigas.movimiento.entity.TipoMovimiento;
 import com.example.hormigas.movimiento.service.MovimientoService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,13 +35,14 @@ public class MovimientoController {
     }
 
     @GetMapping("/buscar")
-    public List<MovimientoResponseDTO> obtenerMovimientos(
+    public Page<MovimientoResponseDTO> obtenerMovimientos(
             @RequestParam(required = false) Long sucursalId,
             @RequestParam(required = false) Long productoId,
             @RequestParam(required = false) Long inventarioId,
-            @RequestParam(required = false) TipoMovimiento tipo
+            @RequestParam(required = false) TipoMovimiento tipo,
+            @PageableDefault(size = 20, sort = "fecha", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         MovimientoFiltroDTO filtro = new MovimientoFiltroDTO(sucursalId, productoId, inventarioId, tipo);
-        return movimientoService.obtenerMovimientos(filtro);
+        return movimientoService.obtenerMovimientos(filtro, pageable);
     }
 }

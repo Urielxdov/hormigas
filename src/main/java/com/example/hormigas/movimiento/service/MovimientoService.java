@@ -19,6 +19,8 @@ import com.example.hormigas.sucursal.entity.Sucursal;
 import com.example.hormigas.sucursal.repository.SucursalRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -78,12 +80,11 @@ public class MovimientoService {
         return resultados;
     }
 
-    public List<MovimientoResponseDTO> obtenerMovimientos(MovimientoFiltroDTO filtro) {
+    public Page<MovimientoResponseDTO> obtenerMovimientos(MovimientoFiltroDTO filtro, Pageable pageable) {
         Usuario user = usuarioService.getUsuarioLogueado();
-        List<Movimiento> movimientos = movimientoRepository.findAll(
-                MovimientoSpecification.conFiltros(user.getEmpresa().getId(), filtro)
-        );
-        return movimientos.stream().map(MovimientoMapper::toResponse).toList();
+        return movimientoRepository
+                .findAll(MovimientoSpecification.conFiltros(user.getEmpresa().getId(), filtro), pageable)
+                .map(MovimientoMapper::toResponse);
     }
 
     private Movimiento procesarItemMovimiento(
