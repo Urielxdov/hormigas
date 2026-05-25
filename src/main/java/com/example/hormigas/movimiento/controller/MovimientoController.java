@@ -6,6 +6,7 @@ import com.example.hormigas.movimiento.dto.MovimientoResponseDTO;
 import com.example.hormigas.movimiento.dto.VentaBatchDTO;
 import com.example.hormigas.movimiento.entity.TipoMovimiento;
 import com.example.hormigas.movimiento.service.MovimientoService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,20 +16,17 @@ import java.util.List;
 public class MovimientoController {
     private final MovimientoService movimientoService;
 
-    public MovimientoController (
-            MovimientoService movimientoService
-    ) {
+    public MovimientoController(MovimientoService movimientoService) {
         this.movimientoService = movimientoService;
     }
 
-
     @PostMapping("/crear")
-    public MovimientoResponseDTO createMovimiento (@RequestBody CrearMovimientoDTO dto) {
+    public MovimientoResponseDTO createMovimiento(@Valid @RequestBody CrearMovimientoDTO dto) {
         return movimientoService.registrarMovimiento(dto);
     }
 
     @PostMapping("/venta/batch")
-    public List<MovimientoResponseDTO> registrarVentaBatch(@RequestBody VentaBatchDTO dto) {
+    public List<MovimientoResponseDTO> registrarVentaBatch(@Valid @RequestBody VentaBatchDTO dto) {
         return movimientoService.registrarVentaBatch(dto);
     }
 
@@ -38,9 +36,8 @@ public class MovimientoController {
             @RequestParam(required = false) Long productoId,
             @RequestParam(required = false) Long inventarioId,
             @RequestParam(required = false) TipoMovimiento tipo
-            ) {
+    ) {
         MovimientoFiltroDTO filtro = new MovimientoFiltroDTO(sucursalId, productoId, inventarioId, tipo);
         return movimientoService.obtenerMovimientos(filtro);
     }
-
 }

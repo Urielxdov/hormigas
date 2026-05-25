@@ -3,6 +3,7 @@ package com.example.hormigas.sucursal.controller;
 import com.example.hormigas.sucursal.dto.SucursalCreateDTO;
 import com.example.hormigas.sucursal.dto.SucursalResponseDTO;
 import com.example.hormigas.sucursal.service.SucursalService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
@@ -19,7 +20,7 @@ public class SucursalController {
     }
 
     @PostMapping("/crear")
-    public SucursalResponseDTO crear (@RequestBody SucursalCreateDTO dto) throws AccessDeniedException {
+    public SucursalResponseDTO crear(@Valid @RequestBody SucursalCreateDTO dto) throws AccessDeniedException {
         return sucursalService.crear(dto);
     }
 

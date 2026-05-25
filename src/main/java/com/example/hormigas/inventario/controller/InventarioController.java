@@ -4,6 +4,7 @@ import com.example.hormigas.inventario.dto.CrearInventarioDTO;
 import com.example.hormigas.inventario.dto.InventarioFiltroDTO;
 import com.example.hormigas.inventario.dto.InventarioResponseDTO;
 import com.example.hormigas.inventario.service.InventarioService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,12 +15,12 @@ public class InventarioController {
 
     private InventarioService inventarioService;
 
-    public InventarioController (InventarioService inventarioService) {
+    public InventarioController(InventarioService inventarioService) {
         this.inventarioService = inventarioService;
     }
 
     @PostMapping("/crear")
-    public InventarioResponseDTO crear(@RequestBody CrearInventarioDTO dto) {
+    public InventarioResponseDTO crear(@Valid @RequestBody CrearInventarioDTO dto) {
         return inventarioService.crear(dto);
     }
 

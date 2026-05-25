@@ -6,6 +6,7 @@ import com.example.hormigas.security.infrastructure.dtos.LoginRequestDTO;
 import com.example.hormigas.security.domain.services.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,7 +24,7 @@ public class AuthController {
     }
 
     @PostMapping
-    public void createUser(@RequestBody CreateUsuarioDTO createUsuarioDTO) {
+    public void createUser(@Valid @RequestBody CreateUsuarioDTO createUsuarioDTO) {
         authService.createUser(createUsuarioDTO);
     }
 
@@ -34,12 +35,11 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public Map<String, String> login(@RequestBody LoginRequestDTO loginRequestDTO, HttpServletResponse response) {
+    public Map<String, String> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO, HttpServletResponse response) {
         final String token = authService.login(loginRequestDTO);
         final Cookie cookie = createAuthCookie(token);
         response.addCookie(cookie);
         response.setStatus(HttpServletResponse.SC_OK);
-
         return Map.of("token", token);
     }
 

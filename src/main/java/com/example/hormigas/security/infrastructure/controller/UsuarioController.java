@@ -3,6 +3,7 @@ package com.example.hormigas.security.infrastructure.controller;
 import com.example.hormigas.security.infrastructure.dtos.CreateUsuarioDTO;
 import com.example.hormigas.security.infrastructure.dtos.UsuarioResponseDTO;
 import com.example.hormigas.security.domain.services.UsuarioService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +19,7 @@ public class UsuarioController {
     }
 
     @PostMapping("/create")
-    public UsuarioResponseDTO crearUsuario (@RequestBody CreateUsuarioDTO createUsuarioDTO) {
+    public UsuarioResponseDTO crearUsuario(@Valid @RequestBody CreateUsuarioDTO createUsuarioDTO) {
         return usuarioService.nuevoUsuario(createUsuarioDTO);
     }
 
@@ -27,5 +28,4 @@ public class UsuarioController {
         List<UsuarioResponseDTO> usuarios = usuarioService.getAllUsuarios();
         return ResponseEntity.ok(usuarios);
     }
-
 }
