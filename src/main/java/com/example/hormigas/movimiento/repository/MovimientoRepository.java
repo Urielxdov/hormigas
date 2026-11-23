@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import java.util.List;
 
 public interface MovimientoRepository extends JpaRepository<Movimiento, Long>, JpaSpecificationExecutor<Movimiento> {
-
+    List<Movimiento> findByVentaClientIdAndInventarioSucursalEmpresaId(String ventaClientId, Long empresaId);
 }

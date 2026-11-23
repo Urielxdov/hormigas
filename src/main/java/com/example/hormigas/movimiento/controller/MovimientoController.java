@@ -4,6 +4,7 @@ import com.example.hormigas.movimiento.dto.CrearMovimientoDTO;
 import com.example.hormigas.movimiento.dto.MovimientoFiltroDTO;
 import com.example.hormigas.movimiento.dto.MovimientoResponseDTO;
 import com.example.hormigas.movimiento.dto.VentaBatchDTO;
+import com.example.hormigas.movimiento.dto.VentaBatchResponseDTO;
 import com.example.hormigas.movimiento.entity.TipoMovimiento;
 import com.example.hormigas.movimiento.service.MovimientoService;
 import jakarta.validation.Valid;
@@ -30,7 +31,7 @@ public class MovimientoController {
     }
 
     @PostMapping("/venta/batch")
-    public List<MovimientoResponseDTO> registrarVentaBatch(@Valid @RequestBody VentaBatchDTO dto) {
+    public VentaBatchResponseDTO registrarVentaBatch(@Valid @RequestBody VentaBatchDTO dto) {
         return movimientoService.registrarVentaBatch(dto);
     }
 

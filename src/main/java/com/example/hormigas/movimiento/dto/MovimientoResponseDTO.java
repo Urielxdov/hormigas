@@ -2,6 +2,7 @@ package com.example.hormigas.movimiento.dto;
 
 import com.example.hormigas.movimiento.entity.TipoMovimiento;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record MovimientoResponseDTO(
@@ -16,5 +17,6 @@ public record MovimientoResponseDTO(
         String referencia,
         LocalDateTime fecha,
         int stockAnterior,
-        int stockNuevo
+        int stockNuevo,
+        BigDecimal precioUnitario
 ) {}

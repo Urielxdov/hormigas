@@ -7,11 +7,18 @@ import com.example.hormigas.sucursal.entity.Sucursal;
 import com.example.hormigas.security.domain.Usuario;
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(
         name = "movimiento",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_mov_venta_client_inventario",
+                        columnNames = {"venta_client_id", "inventario_id"}
+                )
+        },
         indexes = {
                 @Index(name = "idx_mov_producto", columnList = "producto_id"),
                 @Index(name = "idx_mov_sucursal", columnList = "sucursal_id"),
@@ -58,6 +65,13 @@ public class Movimiento {
     private String referencia;
 
     private LocalDateTime fecha;
+
+    @Column(precision = 12, scale = 2)
+    private BigDecimal precioUnitario;
+
+    /** Id generado por el cliente (POS) para deduplicar reintentos de una misma venta. */
+    @Column(name = "venta_client_id", length = 64)
+    private String ventaClientId;
 
     public Movimiento() {}
 
@@ -128,5 +142,21 @@ public class Movimiento {
 
     public void setInventario(Inventario inventario) {
         this.inventario = inventario;
+    }
+
+    public BigDecimal getPrecioUnitario() {
+        return precioUnitario;
+    }
+
+    public void setPrecioUnitario(BigDecimal precioUnitario) {
+        this.precioUnitario = precioUnitario;
+    }
+
+    public String getVentaClientId() {
+        return ventaClientId;
+    }
+
+    public void setVentaClientId(String ventaClientId) {
+        this.ventaClientId = ventaClientId;
     }
 }

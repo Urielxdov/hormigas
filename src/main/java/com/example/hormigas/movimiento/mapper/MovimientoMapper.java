@@ -36,7 +36,8 @@ public class MovimientoMapper {
                 movimiento.getReferencia(),
                 movimiento.getFecha(),
                 movimiento.getStockAnterior(),
-                movimiento.getStockNuevo()
+                movimiento.getStockNuevo(),
+                movimiento.getPrecioUnitario()
         );
     }
 
