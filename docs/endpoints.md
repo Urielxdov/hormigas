@@ -251,6 +251,7 @@ Auth: JWT via cookie (`auth_token`) o header `Authorization: Bearer <token>`.
 | Método | Ruta | Roles | Descripción |
 |--------|------|-------|-------------|
 | `POST` | `/api/movimiento/crear` | Autenticado | Registrar movimiento de inventario |
+| `POST` | `/api/movimiento/venta/batch` | Autenticado | Registrar una venta (idempotente, parcial) |
 | `GET` | `/api/movimiento/buscar` | Autenticado | Buscar movimientos con filtros |
 
 ### POST `/api/movimiento/crear`
@@ -279,6 +280,38 @@ Auth: JWT via cookie (`auth_token`) o header `Authorization: Bearer <token>`.
   "fecha": "2026-05-11T00:00:00"
 }
 ```
+
+### POST `/api/movimiento/venta/batch`
+Registra una venta del POS (posiblemente hecha offline). Es **idempotente** por `clientId` y **parcial**:
+cada item se procesa por separado; los invalidos se reportan en `rechazados` sin revertir los demas.
+Reintentar con el mismo `clientId` no duplica movimientos ni stock.
+
+**Body:**
+```json
+{
+  "clientId": "uuid-generado-en-el-cliente",
+  "sucursalId": 1,
+  "referencia": "opcional (por defecto clientId)",
+  "fecha": "2026-05-11T15:30:00Z",
+  "items": [
+    { "productoId": 1, "cantidad": 2, "precioUnitario": 20.00 }
+  ]
+}
+```
+- `fecha`: momento real de la venta; si falta o es futura se usa la hora del servidor.
+- `precioUnitario`: precio cobrado; si falta se usa el precio actual del producto.
+- Items repetidos del mismo producto se suman.
+
+**Response `200`:**
+```json
+{
+  "clientId": "uuid-generado-en-el-cliente",
+  "duplicada": false,
+  "procesados": [ { "id": 1, "productoId": 1, "tipoMovimiento": "VENTA", "cantidad": 2, "precioUnitario": 20.00, "stockAnterior": 10, "stockNuevo": 8, "fecha": "2026-05-11T09:30:00" } ],
+  "rechazados": [ { "productoId": 2, "cantidad": 5, "motivo": "Stock insuficiente para productoId=2" } ]
+}
+```
+`duplicada` es `true` cuando todos los items ya estaban registrados por un intento anterior.
 
 ### GET `/api/movimiento/buscar`
 **Query params** (todos opcionales):
