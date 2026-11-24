@@ -22,8 +22,9 @@ public class ProductoController {
     }
 
     @GetMapping("/")
-    public Page<ProductoResponseDTO> listarProductos(Pageable pageable) {
-        return productoService.obtenerProductos(pageable);
+    public Page<ProductoResponseDTO> listarProductos(Pageable pageable,
+                                                     @RequestParam(defaultValue = "false") boolean todos) {
+        return productoService.obtenerProductos(pageable, todos);
     }
 
     @PostMapping("/nuevo")

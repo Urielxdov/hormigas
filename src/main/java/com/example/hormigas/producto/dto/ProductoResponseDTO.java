@@ -9,6 +9,9 @@ public record ProductoResponseDTO(
         String descripcion,
         String sku,
         BigDecimal precio,
-        boolean activo
+        boolean activo,
+        Long categoriaId,
+        /** Suma del stock en todas las sucursales de la empresa (null si no se calculo). */
+        Long stockTotal
 ) {
 }

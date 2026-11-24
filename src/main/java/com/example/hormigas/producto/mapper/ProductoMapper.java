@@ -6,14 +6,21 @@ import com.example.hormigas.producto.entity.Producto;
 public class ProductoMapper {
 
     public static ProductoResponseDTO toResponse(Producto producto) {
+        return toResponse(producto, null);
+    }
+
+    public static ProductoResponseDTO toResponse(Producto producto, Long stockTotal) {
+        var categoria = producto.getCategoria();
         return new ProductoResponseDTO(
                 producto.getId(),
-                producto.getCategoria() != null ? producto.getCategoria().getNombre() : producto.getCategoriaTexto(),
+                categoria != null ? categoria.getNombre() : producto.getCategoriaTexto(),
                 producto.getNombre(),
                 producto.getDescripcion(),
                 producto.getSku(),
                 producto.getPrecio(),
-                producto.isActivo()
+                producto.isActivo(),
+                categoria != null ? categoria.getId() : null,
+                stockTotal
         );
     }
 }

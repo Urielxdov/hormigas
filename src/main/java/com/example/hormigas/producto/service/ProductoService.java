@@ -59,11 +59,9 @@ public class ProductoService {
         producto.setActivo(true);
 
         if (dto.categoriaId() != null) {
-            categoriaRepository.findByIdAndEmpresaId(dto.categoriaId(), user.getEmpresa().getId())
-                    .ifPresent(cat -> {
-                        producto.setCategoria(cat);
-                        producto.setCategoriaTexto(cat.getNombre());
-                    });
+            var cat = categoriaAsignable(dto.categoriaId(), user.getEmpresa().getId());
+            producto.setCategoria(cat);
+            producto.setCategoriaTexto(cat.getNombre());
         } else if (dto.categoria() != null) {
             producto.setCategoriaTexto(dto.categoria());
         }
@@ -108,8 +106,9 @@ public class ProductoService {
         }
 
         if (dto.categoriaId() != null) {
-            var categoria = categoriaRepository.findByIdAndEmpresaId(dto.categoriaId(), user.getEmpresa().getId())
-                    .orElseThrow(() -> new EntityNotFoundException("Categoria no encontrada"));
+            var categoria = producto.getCategoria() != null && producto.getCategoria().getId().equals(dto.categoriaId())
+                    ? producto.getCategoria() // conservar la actual aunque se haya desactivado
+                    : categoriaAsignable(dto.categoriaId(), user.getEmpresa().getId());
             producto.setCategoria(categoria);
             producto.setCategoriaTexto(categoria.getNombre());
         } else if (dto.categoria() != null) {
@@ -132,12 +131,32 @@ public class ProductoService {
             throw new EntityNotFoundException("Producto no encontrado");
         }
     }
-    // Ver productos
-    public Page<ProductoResponseDTO> obtenerProductos(Pageable pageable) {
+    private com.example.hormigas.producto.entity.Categoria categoriaAsignable(Long categoriaId, Long empresaId) {
+        var cat = categoriaRepository.findByIdAndEmpresaId(categoriaId, empresaId)
+                .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
+        if (!cat.isActivo()) {
+            throw new IllegalArgumentException("La categoría \"" + cat.getNombre() + "\" está inactiva");
+        }
+        return cat;
+    }
+
+    // Ver productos (con el stock total de la empresa). todos=true incluye los inactivos
+    // para que el panel pueda mostrarlos y reactivarlos.
+    public Page<ProductoResponseDTO> obtenerProductos(Pageable pageable, boolean todos) {
         Usuario user = usuarioService.getUsuarioLogueado();
-        return productoRepository
-                .findByEmpresaIdAndActivoTrue(user.getEmpresa().getId(), pageable)
-                .map(ProductoMapper::toResponse);
+        Long empresaId = user.getEmpresa().getId();
+        Page<Producto> pagina = todos
+                ? productoRepository.findByEmpresaId(empresaId, pageable)
+                : productoRepository.findByEmpresaIdAndActivoTrue(empresaId, pageable);
+
+        java.util.Map<Long, Long> stock = new java.util.HashMap<>();
+        List<Long> ids = pagina.getContent().stream().map(Producto::getId).toList();
+        if (!ids.isEmpty()) {
+            for (Object[] fila : productoRepository.stockTotalPorProducto(ids)) {
+                stock.put((Long) fila[0], ((Number) fila[1]).longValue());
+            }
+        }
+        return pagina.map(p -> ProductoMapper.toResponse(p, stock.getOrDefault(p.getId(), 0L)));
     }
 
     // Buscar productos con stock en sucursal

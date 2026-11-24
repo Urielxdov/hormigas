@@ -19,13 +19,18 @@ public class CategoriaController {
     }
 
     @GetMapping("/")
-    public List<CategoriaResponseDTO> listar() {
-        return categoriaService.listarActivas();
+    public List<CategoriaResponseDTO> listar(@RequestParam(defaultValue = "false") boolean todas) {
+        return categoriaService.listar(todas);
     }
 
     @PostMapping("/nueva")
     public CategoriaResponseDTO crear(@Valid @RequestBody NuevaCategoriaDTO dto) {
         return categoriaService.crear(dto);
+    }
+
+    @PutMapping("/{id}")
+    public CategoriaResponseDTO actualizar(@PathVariable Long id, @Valid @RequestBody NuevaCategoriaDTO dto) {
+        return categoriaService.actualizar(id, dto);
     }
 
     @PatchMapping("/{id}/toggle")

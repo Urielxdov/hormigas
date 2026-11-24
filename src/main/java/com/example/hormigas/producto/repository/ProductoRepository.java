@@ -23,6 +23,16 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     Page<Producto> findByEmpresaIdAndActivoTrue(Long empresaId, Pageable pageable);
 
+    Page<Producto> findByEmpresaId(Long empresaId, Pageable pageable);
+
+    /** [productoId, suma de stock en todas las sucursales] de los productos indicados. */
+    @Query("""
+        SELECT i.producto.id, SUM(i.stockActual) FROM Inventario i
+        WHERE i.producto.id IN :ids
+        GROUP BY i.producto.id
+    """)
+    List<Object[]> stockTotalPorProducto(@Param("ids") List<Long> ids);
+
     @Modifying
     @Transactional
     @Query("""
