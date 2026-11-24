@@ -10,9 +10,9 @@ import com.example.hormigas.sucursal.entity.Sucursal;
 import com.example.hormigas.sucursal.mapper.MapperSucursal;
 import com.example.hormigas.sucursal.repository.SucursalRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.Objects;
 
@@ -30,7 +30,7 @@ public class SucursalService {
 
 
     // Agregar sucursal
-    public SucursalResponseDTO crear (SucursalCreateDTO dto) throws AccessDeniedException {
+    public SucursalResponseDTO crear (SucursalCreateDTO dto) {
         Usuario admin = usuarioService.getUsuarioLogueado();
 
         if (!admin.getRoles().contains(Role.ADMIN)) {

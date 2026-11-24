@@ -6,7 +6,6 @@ import com.example.hormigas.sucursal.service.SucursalService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestController
@@ -20,7 +19,7 @@ public class SucursalController {
     }
 
     @PostMapping("/crear")
-    public SucursalResponseDTO crear(@Valid @RequestBody SucursalCreateDTO dto) throws AccessDeniedException {
+    public SucursalResponseDTO crear(@Valid @RequestBody SucursalCreateDTO dto) {
         return sucursalService.crear(dto);
     }
 

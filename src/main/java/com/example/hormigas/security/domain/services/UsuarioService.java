@@ -13,6 +13,7 @@ import com.example.hormigas.security.domain.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -199,11 +200,11 @@ public class UsuarioService implements UserDetailsService {
     public Usuario getUsuarioLogueado () {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
-            throw new RuntimeException("No hay usuario autenticado");
+            throw new AuthenticationCredentialsNotFoundException("No hay usuario autenticado");
         }
         // auth.getPrincipal() normalmente es un UserDetails
         String correo = auth.getName();
         return usuarioRepository.findByCorreo(correo)
-                .orElseThrow(() -> new RuntimeException("Usuario logueado no encotrado"));
+                .orElseThrow(() -> new AuthenticationCredentialsNotFoundException("Usuario logueado no encontrado"));
     }
 }

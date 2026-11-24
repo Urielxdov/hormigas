@@ -105,7 +105,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // Recuperar superAdmin fresco desde BD (con ID asignado por JPA)
         Permiso superAdmin = permisoRepository.findByCodigo("system.superadmin")
-                .orElseThrow(() -> new RuntimeException("Permiso superadmin no encontrado"));
+                .orElseThrow(() -> new IllegalStateException("Permiso superadmin no encontrado"));
 
         // Crear empresa por defecto
         Empresa empresa = empresaRepository.findById(1L).orElseGet(() -> {
