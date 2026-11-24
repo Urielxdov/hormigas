@@ -14,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -74,10 +75,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // VALIDACIÓN
         if (!authService.validateToken(token.get())) {
             logger.warn("[JWT FILTER] Invalid token");
-
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Invalid token\"}");
+            writeUnauthorized(response, "Invalid token");
             return;
         }
 
@@ -85,7 +83,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String username = authService.getUserFromToken(token.get());
         logger.info("[JWT FILTER] Auth user: {}", username);
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        UserDetails userDetails;
+        try {
+            userDetails = userDetailsService.loadUserByUsername(username);
+        } catch (UsernameNotFoundException e) {
+            logger.warn("[JWT FILTER] User from token no longer exists");
+            writeUnauthorized(response, "Invalid token");
+            return;
+        }
+
+        // Usuario desactivado o bloqueado (incluye empresa inactiva): el token deja de servir
+        if (!userDetails.isEnabled() || !userDetails.isAccountNonLocked()) {
+            logger.warn("[JWT FILTER] Disabled or locked user: {}", username);
+            writeUnauthorized(response, "Usuario inactivo");
+            return;
+        }
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
@@ -99,6 +111,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         logger.info("[JWT FILTER] Authentication set, continuing chain");
 
         filterChain.doFilter(request, response);
+    }
+
+    private void writeUnauthorized(HttpServletResponse response, String error) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.getWriter().write("{\"error\":\"" + error + "\"}");
     }
 
     private Optional<String> getJwtFromCookie(HttpServletRequest request) {

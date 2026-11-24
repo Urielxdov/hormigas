@@ -66,7 +66,7 @@ public class TokenServiceImpl implements TokenService {
         JwtClaimsSet.Builder claimsBuilder = JwtClaimsSet.builder()
                 .subject(usuario.getCorreo())
                 .issuedAt(now)
-                .expiresAt(now.plus(expiration, ChronoUnit.MINUTES))
+                .expiresAt(now.plus(expiration, ChronoUnit.MILLIS)) // jwt.expiration esta en milisegundos
                 .claim("roles", roles)
                 .claim("id", usuario.getId())        // ejemplo: info extra
                 .claim("empresaId", usuario.getEmpresa().getId()); // info de empresa
@@ -93,8 +93,8 @@ public class TokenServiceImpl implements TokenService {
             jwtDecoder.decode(token);
             return true;
         } catch (Exception exception) {
-            logger.error("[USER] : Error al tratar de validar el token", exception);
-            throw new BadJwtException("Error mientras se trataba de validar el token");
+            logger.warn("[USER] : Token invalido o expirado: {}", exception.getMessage());
+            return false;
         }
     }
 

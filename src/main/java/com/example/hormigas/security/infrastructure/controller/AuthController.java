@@ -31,7 +31,10 @@ public class AuthController {
     @PostMapping("/logout")
     public void logout(HttpServletResponse response) {
         final Cookie cookie = new Cookie(AuthCookieConstants.TOKEN_COOKIE_NAME, "");
+        cookie.setHttpOnly(AuthCookieConstants.HTTP_ONLY);
+        cookie.setSecure(AuthCookieConstants.COOKIE_SECURE);
         cookie.setMaxAge(0);
+        response.addCookie(cookie);
     }
 
     @PostMapping("/login")

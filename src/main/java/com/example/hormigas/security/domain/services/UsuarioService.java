@@ -48,6 +48,8 @@ public class UsuarioService implements UserDetailsService {
                 .username(usuario.getCorreo())
                 .password(usuario.getPasswordHash())
                 .disabled(!usuario.isActivo())
+                // Empresa desactivada: sus usuarios no pueden entrar ni usar tokens ya emitidos
+                .accountLocked(usuario.getEmpresa() == null || !usuario.getEmpresa().isActivo())
                 .authorities(usuario.getAuthorities()) // despues lo debemos cambiar a los que se usan aqui
                 .build();
     }

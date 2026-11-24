@@ -1,6 +1,11 @@
 package com.example.hormigas.security.application.services;
 
+import com.example.hormigas.empresa.entity.Empresa;
+import com.example.hormigas.empresa.repository.EmpresaRepository;
+import com.example.hormigas.security.domain.Role;
 import com.example.hormigas.security.infrastructure.dtos.CreateUsuarioDTO;
+import com.example.hormigas.sucursal.entity.Sucursal;
+import jakarta.persistence.EntityNotFoundException;
 import com.example.hormigas.security.infrastructure.dtos.LoginRequestDTO;
 import com.example.hormigas.security.domain.Usuario;
 import com.example.hormigas.security.application.mapper.AuthMapper;
@@ -30,6 +35,7 @@ public class AuthServiceImpl implements AuthService {
     private final TokenService tokenService;
     private final UsuarioService usuarioService;
     private final SucursalRepository sucursalRepository;
+    private final EmpresaRepository empresaRepository;
 
     public AuthServiceImpl(
             UsuarioRepository usuarioRepository,
@@ -37,8 +43,10 @@ public class AuthServiceImpl implements AuthService {
             AuthenticationConfiguration authenticationConfiguration,
             TokenService tokenService,
             UsuarioService usuarioService,
-            SucursalRepository sucursalRepository
+            SucursalRepository sucursalRepository,
+            EmpresaRepository empresaRepository
     ){
+        this.empresaRepository = empresaRepository;
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationConfiguration = authenticationConfiguration;
@@ -75,12 +83,46 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void createUser(CreateUsuarioDTO createUserDto) {
+        if (usuarioRepository.findByCorreo(createUserDto.correo()).isPresent()) {
+            throw new IllegalArgumentException("Correo ya registrado");
+        }
+        final Usuario actual = usuarioService.getUsuarioLogueado();
+        final boolean esSuperAdmin = actual.getRoles() != null && actual.getRoles().contains(Role.SUPER_ADMIN);
+
         final Usuario createUsuario = AuthMapper.fromDto(createUserDto);
         createUsuario.setPasswordHash(passwordEncoder.encode(createUserDto.password()));
-        if (createUserDto.sucursalId() != null) {
-            sucursalRepository.findById(createUserDto.sucursalId())
-                    .ifPresent(createUsuario::setSucursal);
+        createUsuario.addRol(Role.USER);
+
+        Sucursal sucursal = null;
+        Empresa empresa;
+        if (esSuperAdmin) {
+            // SUPER_ADMIN puede crear usuarios en cualquier empresa/sucursal
+            if (createUserDto.sucursalId() != null) {
+                sucursal = sucursalRepository.findById(createUserDto.sucursalId())
+                        .orElseThrow(() -> new EntityNotFoundException("Sucursal no encontrada"));
+            }
+            if (createUserDto.empresaId() != null) {
+                empresa = empresaRepository.findById(createUserDto.empresaId())
+                        .orElseThrow(() -> new EntityNotFoundException("Empresa no encontrada"));
+            } else if (sucursal != null) {
+                empresa = sucursal.getEmpresa();
+            } else {
+                throw new IllegalArgumentException("La empresa es obligatoria para el superusuario");
+            }
+            if (sucursal != null && !sucursal.getEmpresa().getId().equals(empresa.getId())) {
+                throw new IllegalArgumentException("La sucursal no pertenece a la empresa indicada");
+            }
+        } else {
+            // ADMIN: solo dentro de su propia empresa
+            empresa = actual.getEmpresa();
+            if (createUserDto.sucursalId() != null) {
+                sucursal = sucursalRepository.findByIdAndEmpresaId(createUserDto.sucursalId(), empresa.getId())
+                        .orElseThrow(() -> new EntityNotFoundException("Sucursal no encontrada en esta empresa"));
+            }
         }
+        createUsuario.setEmpresa(empresa);
+        createUsuario.setSucursal(sucursal);
+
         final Usuario usuario = usuarioRepository.save(createUsuario);
         logger.info("[USER] : User succesfully created with id {}", usuario.getId());
     }

@@ -4,6 +4,7 @@ import com.example.hormigas.security.domain.Role;
 import com.example.hormigas.security.infrastructure.filter.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -47,10 +48,14 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // 1. Permitir Login
                 .requestMatchers(LOGIN_URL_MATCHER).permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/auth/logout").permitAll()
+                // Registro de usuarios: solo administradores (la sucursal se valida contra su empresa)
+                .requestMatchers(HttpMethod.POST, "/api/auth").hasAnyAuthority("ROLE_ADMIN", "ROLE_SUPER_ADMIN")
 
                 // 2. Reglas específicas (SIEMPRE ARRIBA)
                 .requestMatchers("/api/empresa/create").hasAuthority("ROLE_SUPER_ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/empresa/*/activate", "/api/empresa/rfc/*/activate")
+                    .hasAuthority("ROLE_SUPER_ADMIN")
                 .requestMatchers("/api/empresa/delete/**").hasAuthority("ROLE_SUPER_ADMIN")
                 .requestMatchers("/api/empresa/all").hasAuthority("ROLE_SUPER_ADMIN")
 

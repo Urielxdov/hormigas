@@ -44,7 +44,7 @@ public class EmpresaController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
-    @PatchMapping("/{rfc}/activate")
+    @PatchMapping("/rfc/{rfc}/activate")
     public ResponseEntity<EmpresaResponseDTO> activar(@PathVariable String rfc) {
         empresaService.activate(rfc);
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();

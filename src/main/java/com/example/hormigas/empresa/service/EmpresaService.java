@@ -92,8 +92,6 @@ public class EmpresaService {
             empresa.setTelefono(dto.telefono());
         }
 
-        empresa.setActivo(true);
-
         empresa = empresaRepository.save(empresa);
         logger.info("[COMPANY] : Company update {}", empresa.getId());
 
