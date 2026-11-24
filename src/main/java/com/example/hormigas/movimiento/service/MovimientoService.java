@@ -20,7 +20,6 @@ import com.example.hormigas.security.domain.services.UsuarioService;
 import com.example.hormigas.sucursal.entity.Sucursal;
 import com.example.hormigas.sucursal.repository.SucursalRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
@@ -123,11 +123,13 @@ public class MovimientoService {
             if (yaRegistrados.contains(item.productoId())) continue;
             hayNuevos = true;
             try {
-                Movimiento m = transaccionPorItem.execute(status -> procesarItemMovimiento(
-                        sucursal.getId(), item.productoId(), TipoMovimiento.VENTA, item.cantidad(),
-                        referencia, user, fecha, item.precioUnitario(), clientId
-                ));
-                procesados.add(MovimientoMapper.toResponse(m));
+                // Se mapea dentro de la transaccion: inventario/producto/sucursal son LAZY
+                MovimientoResponseDTO m = transaccionPorItem.execute(status -> MovimientoMapper.toResponse(
+                        procesarItemMovimiento(
+                                sucursal.getId(), item.productoId(), TipoMovimiento.VENTA, item.cantidad(),
+                                referencia, user, fecha, item.precioUnitario(), clientId
+                        )));
+                procesados.add(m);
             } catch (EntityNotFoundException | IllegalArgumentException e) {
                 rechazados.add(new ItemRechazadoDTO(item.productoId(), item.cantidad(), e.getMessage()));
             } catch (DataIntegrityViolationException e) {
@@ -182,6 +184,7 @@ public class MovimientoService {
         return fecha;
     }
 
+    @Transactional(readOnly = true)
     public Page<MovimientoResponseDTO> obtenerMovimientos(MovimientoFiltroDTO filtro, Pageable pageable) {
         Usuario user = usuarioService.getUsuarioLogueado();
         return movimientoRepository

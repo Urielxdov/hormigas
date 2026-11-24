@@ -3,6 +3,8 @@ package com.example.hormigas.inventario.repository;
 import com.example.hormigas.inventario.entity.Inventario;
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
@@ -13,6 +15,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface InventarioRepository extends JpaRepository<Inventario, Long>, JpaSpecificationExecutor<Inventario> {
+    /** producto y sucursal son LAZY: los listados los cargan en la misma consulta. */
+    @Override
+    @EntityGraph(attributePaths = {"producto", "sucursal"})
+    List<Inventario> findAll(Specification<Inventario> spec);
+
     List<Inventario> findBySucursalId(Long sucursalId);
     List<Inventario> findBySucursalEmpresaId(Long empresaId);
     Optional<Inventario> findBySucursalIdAndProductoId(Long sucursalId, Long productoId);

@@ -15,8 +15,8 @@ import com.example.hormigas.security.domain.services.UsuarioService;
 import com.example.hormigas.sucursal.entity.Sucursal;
 import com.example.hormigas.sucursal.repository.SucursalRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +42,7 @@ public class InventarioService {
         this.productoRepository = productoRepository;
     }
 
+    @Transactional
     public InventarioResponseDTO crear(CrearInventarioDTO dto) {
         Usuario user = usuarioService.getUsuarioLogueado();
 
@@ -70,6 +71,7 @@ public class InventarioService {
     }
 
     //Busqueda por sucursal, producto y empresa
+    @Transactional(readOnly = true)
     public List<InventarioResponseDTO> obtenerInventario(InventarioFiltroDTO filter) {
         Usuario user = usuarioService.getUsuarioLogueado();
 
@@ -101,6 +103,7 @@ public class InventarioService {
     }
 
 
+    @Transactional(readOnly = true)
     public List<InventarioResponseDTO> obtenerStockBajo() {
         Usuario user = usuarioService.getUsuarioLogueado();
         List<Inventario> inventarios = inventarioRepository.findAll(

@@ -1,5 +1,6 @@
 package com.example.hormigas.producto.repository;
 
+import com.example.hormigas.producto.dto.ProductoConStockDTO;
 import com.example.hormigas.producto.entity.Producto;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -44,5 +45,23 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
         ORDER BY p.nombre ASC
     """)
     List<Producto> buscarPorNombreOSku(@Param("q") String q, @Param("empresaId") Long empresaId);
+
+    @Query("""
+        SELECT new com.example.hormigas.producto.dto.ProductoConStockDTO(
+            p.id, i.id, p.nombre, p.sku, p.precio, COALESCE(i.stockActual, 0))
+        FROM Producto p
+        LEFT JOIN Inventario i ON i.producto = p AND i.sucursal.id = :sucursalId
+        WHERE p.empresa.id = :empresaId
+        AND p.activo = true
+        AND (LOWER(p.nombre) LIKE LOWER(CONCAT('%', :q, '%'))
+          OR LOWER(p.sku) LIKE LOWER(CONCAT('%', :q, '%')))
+        ORDER BY p.nombre ASC
+    """)
+    List<ProductoConStockDTO> buscarConStock(
+            @Param("q") String q,
+            @Param("empresaId") Long empresaId,
+            @Param("sucursalId") Long sucursalId,
+            Pageable pageable
+    );
 
 }

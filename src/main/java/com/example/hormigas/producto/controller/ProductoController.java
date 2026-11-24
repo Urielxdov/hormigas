@@ -39,7 +39,8 @@ public class ProductoController {
     @GetMapping("/buscar")
     public List<ProductoConStockDTO> buscarConStock(
             @RequestParam(required = false, defaultValue = "") String q,
-            @RequestParam Long sucursalId) {
-        return productoService.buscarConStock(q, sucursalId);
+            @RequestParam Long sucursalId,
+            @RequestParam(required = false) Integer limit) {
+        return productoService.buscarConStock(q, sucursalId, limit);
     }
 }

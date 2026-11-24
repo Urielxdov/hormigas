@@ -20,8 +20,8 @@ import java.time.LocalDateTime;
                 )
         },
         indexes = {
-                @Index(name = "idx_mov_producto", columnList = "producto_id"),
-                @Index(name = "idx_mov_sucursal", columnList = "sucursal_id"),
+                @Index(name = "idx_mov_inventario", columnList = "inventario_id"),
+                @Index(name = "idx_mov_inventario_fecha", columnList = "inventario_id, fecha"),
                 @Index(name = "idx_mov_fecha", columnList = "fecha")
         }
 )
@@ -31,14 +31,14 @@ public class Movimiento {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "inventario_id",
             foreignKey = @ForeignKey(name = "fk_movimiento_inventario")
     )
     private Inventario inventario;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "usuario_id",
             foreignKey = @ForeignKey(name = "usuario_id")

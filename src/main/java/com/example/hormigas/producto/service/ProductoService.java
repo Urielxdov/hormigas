@@ -15,6 +15,7 @@ import com.example.hormigas.shared.exception.ConflictException;
 import com.example.hormigas.sucursal.repository.SucursalRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -140,24 +141,17 @@ public class ProductoService {
     }
 
     // Buscar productos con stock en sucursal
-    public List<ProductoConStockDTO> buscarConStock(String q, Long sucursalId) {
+    // Una sola consulta (producto LEFT JOIN inventario de la sucursal). Sin limit devuelve todo:
+    // el POS usa q="" para descargar el catalogo completo.
+    public List<ProductoConStockDTO> buscarConStock(String q, Long sucursalId, Integer limit) {
         Usuario user = usuarioService.getUsuarioLogueado();
         Long empresaId = user.getEmpresa().getId();
 
         sucursalRepository.findByIdAndEmpresaId(sucursalId, empresaId)
                 .orElseThrow(() -> new EntityNotFoundException("Sucursal no encontrada en esta empresa"));
 
-        List<Producto> productos = productoRepository.buscarPorNombreOSku(
-                q == null ? "" : q, empresaId
-        );
-        return productos.stream().map(p ->
-                inventarioRepository
-                        .findBySucursalIdAndProductoId(sucursalId, p.getId())
-                        .map(inv -> new ProductoConStockDTO(
-                                p.getId(), inv.getId(), p.getNombre(), p.getSku(), p.getPrecio(), inv.getStockActual()
-                        ))
-                        .orElse(new ProductoConStockDTO(p.getId(), null, p.getNombre(), p.getSku(), p.getPrecio(), 0))
-        ).toList();
+        Pageable pagina = (limit != null && limit > 0) ? PageRequest.of(0, limit) : Pageable.unpaged();
+        return productoRepository.buscarConStock(q == null ? "" : q, empresaId, sucursalId, pagina);
     }
 
 }
