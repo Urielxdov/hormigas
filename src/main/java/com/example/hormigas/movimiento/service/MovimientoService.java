@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -50,6 +51,9 @@ public class MovimientoService {
     private final UsuarioService usuarioService;
     private final ProductoRepository productoRepository;
     private final TransactionTemplate transaccionPorItem;
+
+    /** Antiguedad maxima aceptada para la fecha de una venta offline. */
+    private static final int MAX_DIAS_FECHA_VENTA = 30;
 
     public MovimientoService(
             InventarioRepository inventarioRepository,
@@ -96,25 +100,26 @@ public class MovimientoService {
                 .orElseThrow(() -> new EntityNotFoundException("No se encontro la sucursal"));
         if (!sucursal.isActiva()) throw new IllegalArgumentException("La sucursal no esta activa");
 
-        String clientId = (dto.clientId() == null || dto.clientId().isBlank()) ? null : dto.clientId();
+        if (dto.clientId() == null || dto.clientId().isBlank()) {
+            throw new IllegalArgumentException("El clientId es obligatorio");
+        }
+        String clientId = dto.clientId();
         String referencia = dto.referencia() != null ? dto.referencia() : clientId;
         LocalDateTime fecha = resolverFecha(dto.fecha());
 
         List<MovimientoResponseDTO> procesados = new ArrayList<>();
         List<ItemRechazadoDTO> rechazados = new ArrayList<>();
 
-        // Movimientos ya registrados por un intento previo con el mismo clientId
+        // Movimientos ya registrados en esta sucursal por un intento previo con el mismo clientId
         Set<Long> yaRegistrados = new HashSet<>();
-        if (clientId != null) {
-            for (Movimiento previo : movimientoRepository
-                    .findByVentaClientIdAndInventarioSucursalEmpresaId(clientId, empresaId)) {
-                yaRegistrados.add(previo.getInventario().getProducto().getId());
-                procesados.add(MovimientoMapper.toResponse(previo));
-            }
+        for (Movimiento previo : movimientoRepository
+                .findByVentaClientIdAndInventarioSucursalId(clientId, sucursal.getId())) {
+            yaRegistrados.add(previo.getInventario().getProducto().getId());
+            procesados.add(MovimientoMapper.toResponse(previo));
         }
 
         boolean hayNuevos = false;
-        for (VentaBatchItemDTO item : fusionarItems(dto.items())) {
+        for (VentaBatchItemDTO item : fusionarItems(dto.items(), rechazados)) {
             if (yaRegistrados.contains(item.productoId())) continue;
             hayNuevos = true;
             try {
@@ -126,31 +131,55 @@ public class MovimientoService {
             } catch (EntityNotFoundException | IllegalArgumentException e) {
                 rechazados.add(new ItemRechazadoDTO(item.productoId(), item.cantidad(), e.getMessage()));
             } catch (DataIntegrityViolationException e) {
-                // Otro request con el mismo clientId gano la carrera: el item ya quedo registrado.
-                rechazados.add(new ItemRechazadoDTO(item.productoId(), item.cantidad(), "Item ya registrado"));
+                // Solo es duplicado si otro request con el mismo clientId gano la carrera; cualquier
+                // otra violacion (p. ej. un valor demasiado largo) es un dato invalido.
+                Optional<Movimiento> existente = movimientoRepository
+                        .findByVentaClientIdAndInventarioSucursalIdAndInventarioProductoId(
+                                clientId, sucursal.getId(), item.productoId());
+                if (existente.isPresent()) {
+                    procesados.add(MovimientoMapper.toResponse(existente.get()));
+                } else {
+                    rechazados.add(new ItemRechazadoDTO(item.productoId(), item.cantidad(), "Datos inválidos"));
+                }
             }
         }
-        boolean duplicada = clientId != null && !hayNuevos && !yaRegistrados.isEmpty();
+        boolean duplicada = !hayNuevos && !yaRegistrados.isEmpty();
         return new VentaBatchResponseDTO(clientId, duplicada, procesados, rechazados);
     }
 
-    /** Suma cantidades del mismo producto para no violar la unicidad (clientId, inventario). */
-    private static List<VentaBatchItemDTO> fusionarItems(List<VentaBatchItemDTO> items) {
+    /**
+     * Suma cantidades del mismo producto para no violar la unicidad (clientId, inventario).
+     * Solo fusiona si el precio coincide; un item del mismo producto con otro precio se rechaza.
+     */
+    private static List<VentaBatchItemDTO> fusionarItems(List<VentaBatchItemDTO> items, List<ItemRechazadoDTO> rechazados) {
         Map<Long, VentaBatchItemDTO> porProducto = new LinkedHashMap<>();
         for (VentaBatchItemDTO item : items) {
-            porProducto.merge(item.productoId(), item, (a, b) -> new VentaBatchItemDTO(
-                    a.productoId(), a.cantidad() + b.cantidad(), a.precioUnitario() != null ? a.precioUnitario() : b.precioUnitario()
-            ));
+            VentaBatchItemDTO previo = porProducto.get(item.productoId());
+            if (previo == null) {
+                porProducto.put(item.productoId(), item);
+            } else if (mismoPrecio(previo.precioUnitario(), item.precioUnitario())) {
+                porProducto.put(item.productoId(), new VentaBatchItemDTO(
+                        previo.productoId(), previo.cantidad() + item.cantidad(), previo.precioUnitario()));
+            } else {
+                rechazados.add(new ItemRechazadoDTO(item.productoId(), item.cantidad(),
+                        "Precio distinto para el mismo producto en la venta"));
+            }
         }
         return new ArrayList<>(porProducto.values());
     }
 
-    /** Usa la fecha del cliente (venta offline) salvo que falte o sea futura. */
+    private static boolean mismoPrecio(BigDecimal a, BigDecimal b) {
+        if (a == null || b == null) return a == b;
+        return a.compareTo(b) == 0;
+    }
+
+    /** Usa la fecha del cliente (venta offline) salvo que falte, sea futura o tenga mas de 30 dias. */
     private static LocalDateTime resolverFecha(OffsetDateTime fechaCliente) {
         LocalDateTime ahora = LocalDateTime.now();
         if (fechaCliente == null) return ahora;
         LocalDateTime fecha = fechaCliente.atZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
-        return fecha.isAfter(ahora) ? ahora : fecha;
+        if (fecha.isAfter(ahora) || fecha.isBefore(ahora.minusDays(MAX_DIAS_FECHA_VENTA))) return ahora;
+        return fecha;
     }
 
     public Page<MovimientoResponseDTO> obtenerMovimientos(MovimientoFiltroDTO filtro, Pageable pageable) {
@@ -171,11 +200,15 @@ public class MovimientoService {
             BigDecimal precioUnitario,
             String ventaClientId
     ) {
+        // Bloqueo de fila: dos movimientos concurrentes del mismo inventario se serializan.
         Inventario inventario = inventarioRepository
-                .findBySucursalIdAndProductoId(sucursalId, productoId)
+                .findForUpdateBySucursalIdAndProductoId(sucursalId, productoId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Inventario no encontrado para productoId=" + productoId
                 ));
+        if (!inventario.getProducto().isActivo()) throw new IllegalArgumentException(
+                "Producto inactivo productoId=" + productoId
+        );
 
         int stockActual = inventario.getStockActual();
         int nuevoStock = tipo.aplicar(stockActual, cantidad);
