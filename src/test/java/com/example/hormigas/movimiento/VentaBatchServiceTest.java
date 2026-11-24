@@ -17,6 +17,7 @@ import com.example.hormigas.security.domain.repository.UsuarioRepository;
 import com.example.hormigas.security.domain.services.UsuarioService;
 import com.example.hormigas.sucursal.entity.Sucursal;
 import com.example.hormigas.sucursal.repository.SucursalRepository;
+import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,7 @@ class VentaBatchServiceTest {
     @Autowired ProductoRepository productoRepository;
     @Autowired UsuarioRepository usuarioRepository;
     @MockBean UsuarioService usuarioService;
+    @Autowired Validator validator;
 
     Sucursal sucursal;
     Producto cola;
@@ -187,6 +189,105 @@ class VentaBatchServiceTest {
         assertEquals(1, r.procesados().size());
         assertEquals(5, r.procesados().get(0).cantidad());
         assertEquals(5, stock(cola));
+    }
+
+    @Test
+    void referenciaDemasiadoLargaSeRechazaComoDatoInvalidoYNoComoYaRegistrado() {
+        VentaBatchResponseDTO r = service.registrarVentaBatch(new VentaBatchDTO(
+                sucursal.getId(), List.of(new VentaBatchItemDTO(cola.getId(), 1, null)),
+                "x".repeat(300), "venta-8", null));
+
+        assertTrue(r.procesados().isEmpty());
+        assertEquals(1, r.rechazados().size());
+        assertEquals("Datos inválidos", r.rechazados().get(0).motivo());
+        assertEquals(10, stock(cola));
+    }
+
+    @Test
+    void productoInactivoSeRechaza() {
+        cola.setActivo(false);
+        productoRepository.save(cola);
+
+        VentaBatchResponseDTO r = service.registrarVentaBatch(new VentaBatchDTO(
+                sucursal.getId(), List.of(new VentaBatchItemDTO(cola.getId(), 1, null)), null, "venta-9", null));
+
+        assertTrue(r.procesados().isEmpty());
+        assertTrue(r.rechazados().get(0).motivo().contains("inactivo"));
+        assertEquals(10, stock(cola));
+    }
+
+    @Test
+    void itemsRepetidosConPrecioDistintoNoSeFusionan() {
+        VentaBatchResponseDTO r = service.registrarVentaBatch(new VentaBatchDTO(
+                sucursal.getId(),
+                List.of(new VentaBatchItemDTO(cola.getId(), 2, new BigDecimal("20.00")),
+                        new VentaBatchItemDTO(cola.getId(), 3, new BigDecimal("18.00"))),
+                null, "venta-10", null));
+
+        assertEquals(1, r.procesados().size());
+        assertEquals(2, r.procesados().get(0).cantidad());
+        assertEquals(1, r.rechazados().size());
+        assertEquals(3, r.rechazados().get(0).cantidad());
+        assertTrue(r.rechazados().get(0).motivo().contains("Precio distinto"));
+        assertEquals(8, stock(cola));
+    }
+
+    @Test
+    void clientIdEsObligatorio() {
+        VentaBatchDTO sinClientId = new VentaBatchDTO(
+                sucursal.getId(), List.of(new VentaBatchItemDTO(cola.getId(), 1, null)), null, " ", null);
+
+        assertFalse(validator.validate(sinClientId).isEmpty());
+        assertThrows(IllegalArgumentException.class, () -> service.registrarVentaBatch(sinClientId));
+        assertEquals(10, stock(cola));
+    }
+
+    @Test
+    void validacionDelDtoRechazaItemsNulosYPreciosConMasDeDosDecimales() {
+        List<VentaBatchItemDTO> conNulo = new java.util.ArrayList<>();
+        conNulo.add(null);
+        assertFalse(validator.validate(new VentaBatchDTO(sucursal.getId(), conNulo, null, "v", null)).isEmpty());
+        assertFalse(validator.validate(new VentaBatchDTO(sucursal.getId(),
+                List.of(new VentaBatchItemDTO(cola.getId(), 1, new BigDecimal("1.001"))), null, "v", null)).isEmpty());
+        assertFalse(validator.validate(new VentaBatchDTO(sucursal.getId(),
+                List.of(new VentaBatchItemDTO(cola.getId(), 1, null)), "x".repeat(256), "v", null)).isEmpty());
+    }
+
+    @Test
+    void mismoClientIdEnOtraSucursalNoSeConsideraDuplicado() {
+        Sucursal otra = new Sucursal();
+        otra.setEmpresa(sucursal.getEmpresa());
+        otra.setNombre("Norte");
+        otra.setDireccion("Dir");
+        otra.setActiva(true);
+        otra = sucursalRepository.save(otra);
+        Inventario i = new Inventario();
+        i.setProducto(cola);
+        i.setSucursal(otra);
+        i.setStockActual(5);
+        i.setStockMaximo(100);
+        i.setStockMinimo(0);
+        inventarioRepository.save(i);
+
+        service.registrarVentaBatch(new VentaBatchDTO(
+                sucursal.getId(), List.of(new VentaBatchItemDTO(cola.getId(), 1, null)), null, "venta-11", null));
+        VentaBatchResponseDTO r = service.registrarVentaBatch(new VentaBatchDTO(
+                otra.getId(), List.of(new VentaBatchItemDTO(cola.getId(), 2, null)), null, "venta-11", null));
+
+        assertFalse(r.duplicada());
+        assertEquals(1, r.procesados().size());
+        assertEquals(otra.getId(), r.procesados().get(0).sucursalId());
+        assertEquals(9, stock(cola));
+        assertEquals(3, inventarioRepository.findBySucursalIdAndProductoId(otra.getId(), cola.getId())
+                .orElseThrow().getStockActual());
+    }
+
+    @Test
+    void fechaDeMasDeTreintaDiasSeSustituyePorLaActual() {
+        VentaBatchResponseDTO r = service.registrarVentaBatch(new VentaBatchDTO(
+                sucursal.getId(), List.of(new VentaBatchItemDTO(cola.getId(), 1, null)),
+                null, "venta-12", OffsetDateTime.now(ZoneOffset.UTC).minusDays(45)));
+        assertTrue(r.procesados().get(0).fecha().isAfter(LocalDateTime.now().minusMinutes(1)));
     }
 
     @Test
