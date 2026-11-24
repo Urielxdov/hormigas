@@ -30,6 +30,10 @@ public interface InventarioRepository extends JpaRepository<Inventario, Long>, J
             WHERE i.id = :inventarioId
             AND i.producto.empresa.id = :empresaId
             AND i.sucursal.empresa.id = :empresaId
+            AND EXISTS (
+                SELECT 1 FROM Sucursal s
+                WHERE s.id = :sucursalId AND s.empresa.id = :empresaId
+            )
     """)
     int asignarASucursal(Long inventarioId, Long sucursalId, Long empresaId);
 }

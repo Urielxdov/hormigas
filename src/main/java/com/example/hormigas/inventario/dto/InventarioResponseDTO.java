@@ -10,6 +10,6 @@ public record InventarioResponseDTO(
         Long sucursalId,
         String sucursalNombre,
         int stockActual,
-        int stockMinimo,
-        int stockMaximo
+        Integer stockMinimo,
+        Integer stockMaximo
 ) {}

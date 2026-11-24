@@ -6,7 +6,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 public record CrearInventarioDTO(
         @NotNull Long sucursalId,
         @NotNull Long productoId,
-        int stockActual,
+        @NotNull @PositiveOrZero Integer stockActual,
         @PositiveOrZero Integer stockMinimo,
-        @PositiveOrZero int stockMaximo
+        @NotNull @PositiveOrZero Integer stockMaximo
 ) {}

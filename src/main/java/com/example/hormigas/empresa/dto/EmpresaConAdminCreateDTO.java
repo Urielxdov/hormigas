@@ -5,5 +5,5 @@ import jakarta.validation.constraints.NotNull;
 
 public record EmpresaConAdminCreateDTO(
         @NotNull @Valid EmpresaCreateDTO empresa,
-        @NotNull UsuarioEmpresaCreateDTO admin
+        @NotNull @Valid UsuarioEmpresaCreateDTO admin
 ) {}

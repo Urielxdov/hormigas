@@ -126,10 +126,14 @@ public class UsuarioService implements UserDetailsService {
     }
 
     // Actualizar usuario
-    public UsuarioResponseDTO actualizarUsuario (UsuarioUpdateDTO dto) {
-        //Usuario usuario = authService.getUsuarioLogueado();
-        Usuario usuario = usuarioRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("Pruebas"));
+    public UsuarioResponseDTO actualizarUsuario (Long id, UsuarioUpdateDTO dto) {
+        Usuario actual = getUsuarioLogueado();
+        Usuario usuario = obtenerUsuario(id);
+        if (!tieneRol(actual, Role.SUPER_ADMIN)
+                && !usuario.getEmpresa().getId().equals(actual.getEmpresa().getId())) {
+            throw new EntityNotFoundException("No se encontro el usuario");
+        }
+
         if (dto.nombre() != null && !dto.nombre().isBlank()) {
             usuario.setNombre(dto.nombre());
         }
@@ -139,13 +143,13 @@ public class UsuarioService implements UserDetailsService {
             usuarioRepository.findByCorreo(dto.correo())
                     .filter(u -> !u.getId().equals(usuario.getId()))
                     .ifPresent(u -> { throw new IllegalArgumentException("Correo ya registrado"); });
-
+            usuario.setCorreo(dto.correo());
         }
 
         if (dto.password() != null && !dto.password().isBlank()) {
-
+            usuario.setPasswordHash(passwordEncoder.encode(dto.password()));
         }
-        return new UsuarioResponseDTO(1L, "Prueba", "Pruebas", 1L);
+        return UsuarioMapper.toResponse(usuarioRepository.save(usuario));
     }
 
     // Obtener todos los usuarios activos

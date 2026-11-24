@@ -55,7 +55,7 @@ public class InventarioService {
         Producto producto = productoRepository.findById(dto.productoId())
                 .orElseThrow(() -> new EntityNotFoundException("No se encontro el producto"));
 
-        if (!user.getEmpresa().equals(producto.getEmpresa())) {
+        if (!user.getEmpresa().getId().equals(producto.getEmpresa().getId())) {
             throw new IllegalArgumentException("Parametros invalidos");
         }
 
