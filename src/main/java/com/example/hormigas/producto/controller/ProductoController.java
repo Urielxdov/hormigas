@@ -1,6 +1,7 @@
 package com.example.hormigas.producto.controller;
 
 import com.example.hormigas.producto.dto.NuevoProductoDTO;
+import com.example.hormigas.producto.dto.ProductoActualizadoDTO;
 import com.example.hormigas.producto.dto.ProductoConStockDTO;
 import com.example.hormigas.producto.dto.ProductoResponseDTO;
 import com.example.hormigas.producto.service.ProductoService;
@@ -28,6 +29,11 @@ public class ProductoController {
     @PostMapping("/nuevo")
     public ProductoResponseDTO crear(@Valid @RequestBody NuevoProductoDTO dto) {
         return productoService.crearProducto(dto);
+    }
+
+    @PutMapping("/{id}")
+    public ProductoResponseDTO actualizar(@PathVariable Long id, @Valid @RequestBody ProductoActualizadoDTO dto) {
+        return productoService.actualizarProducto(id, dto);
     }
 
     @GetMapping("/buscar")

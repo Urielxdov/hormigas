@@ -2,7 +2,7 @@
 
 Base URL: `/api`
 
-Auth: JWT via cookie (`auth_token`) o header `Authorization: Bearer <token>`.
+Auth: JWT via cookie (`auth-token`) o header `Authorization: Bearer <token>`.
 
 ---
 
@@ -10,7 +10,7 @@ Auth: JWT via cookie (`auth_token`) o header `Authorization: Bearer <token>`.
 
 | Método | Ruta | Acceso | Descripción |
 |--------|------|--------|-------------|
-| `POST` | `/api/auth` | Público | Crear usuario |
+| `POST` | `/api/auth` | `ADMIN`, `SUPER_ADMIN` | Crear usuario (un `ADMIN` solo en su empresa y sucursales propias) |
 | `POST` | `/api/auth/login` | Público | Login → retorna token JWT |
 | `POST` | `/api/auth/logout` | Público | Logout (limpia cookie) |
 
@@ -34,9 +34,12 @@ Auth: JWT via cookie (`auth_token`) o header `Authorization: Bearer <token>`.
   "correo": "string",
   "password": "string",
   "nombre": "string",
-  "empresaId": 1
+  "empresaId": 1,
+  "sucursalId": 1
 }
 ```
+- `empresaId`: solo lo usa `SUPER_ADMIN`; un `ADMIN` crea usuarios en su propia empresa.
+- `sucursalId`: opcional; para un `ADMIN` debe pertenecer a su empresa.
 
 ---
 
@@ -86,7 +89,7 @@ Auth: JWT via cookie (`auth_token`) o header `Authorization: Bearer <token>`.
 | `GET` | `/api/empresa/all` | `ADMIN`, `SUPER_ADMIN` | Listar todas las empresas |
 | `PATCH` | `/api/empresa/update` | `ADMIN`, `SUPER_ADMIN` | Actualizar empresa |
 | `PATCH` | `/api/empresa/{id}/activate` | `SUPER_ADMIN` | Activar empresa por ID |
-| `PATCH` | `/api/empresa/{rfc}/activate` | `SUPER_ADMIN` | Activar empresa por RFC |
+| `PATCH` | `/api/empresa/rfc/{rfc}/activate` | `SUPER_ADMIN` | Activar empresa por RFC |
 | `DELETE` | `/api/empresa/delete/{id}` | `SUPER_ADMIN` | Eliminar empresa por ID |
 | `DELETE` | `/api/empresa/delete` | `SUPER_ADMIN` | Eliminar empresa propia |
 
@@ -172,6 +175,7 @@ Auth: JWT via cookie (`auth_token`) o header `Authorization: Bearer <token>`.
 |--------|------|-------|-------------|
 | `GET` | `/api/producto/` | Autenticado | Listar productos (paginado) |
 | `POST` | `/api/producto/nuevo` | Autenticado | Crear producto |
+| `PUT` | `/api/producto/{id}` | Autenticado | Actualizar producto |
 
 ### GET `/api/producto/`
 **Query params:** `page`, `size`, `sort` (Spring `Pageable`)
@@ -205,6 +209,22 @@ Auth: JWT via cookie (`auth_token`) o header `Authorization: Bearer <token>`.
   "precio": 0.00
 }
 ```
+
+### PUT `/api/producto/{id}`
+**Body:**
+```json
+{
+  "nombre": "Producto editado",
+  "sku": "SKU-001",
+  "descripcion": "Opcional",
+  "precio": 123.45,
+  "categoria": "Bebidas",
+  "categoriaId": 5,
+  "activo": true
+}
+```
+- Actualización parcial: los campos nulos no se modifican; `nombre` y `sku` no pueden ir en blanco.
+- `404` si el producto no existe en la empresa, `409` si el SKU ya existe.
 
 ---
 
@@ -298,9 +318,13 @@ Reintentar con el mismo `clientId` no duplica movimientos ni stock.
   ]
 }
 ```
-- `fecha`: momento real de la venta; si falta o es futura se usa la hora del servidor.
-- `precioUnitario`: precio cobrado; si falta se usa el precio actual del producto.
-- Items repetidos del mismo producto se suman.
+- `clientId`: **obligatorio** (max 64). La idempotencia es por `clientId` dentro de la sucursal.
+- `referencia`: max 255 caracteres.
+- `fecha`: momento real de la venta; si falta, es futura o tiene mas de 30 dias se usa la hora del servidor.
+- `precioUnitario`: precio cobrado (max 2 decimales); si falta se usa el precio actual del producto.
+- Items repetidos del mismo producto se suman solo si tienen el mismo precio; si no, el repetido se rechaza.
+- Productos inactivos se rechazan. El stock se descuenta con bloqueo de fila (sin sobreventa concurrente).
+- Si otro request con el mismo `clientId` registro el item al mismo tiempo, el item se devuelve en `procesados`.
 
 **Response `200`:**
 ```json

@@ -11,11 +11,13 @@ import com.example.hormigas.producto.repository.CategoriaRepository;
 import com.example.hormigas.producto.repository.ProductoRepository;
 import com.example.hormigas.security.domain.Usuario;
 import com.example.hormigas.security.domain.services.UsuarioService;
+import com.example.hormigas.shared.exception.ConflictException;
 import com.example.hormigas.sucursal.repository.SucursalRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -47,7 +49,7 @@ public class ProductoService {
 
         productoRepository.findByEmpresaIdAndSku(user.getEmpresa().getId(), dto.sku())
                 .ifPresent(p -> {
-                    throw new RuntimeException("El SKU ya existe en esta empresa");
+                    throw new ConflictException("El SKU ya existe en esta empresa");
                 });
 
         Producto producto = new Producto();
@@ -77,11 +79,12 @@ public class ProductoService {
     }
 
     // Actualizar producto
+    @Transactional
     public ProductoResponseDTO actualizarProducto(Long id, ProductoActualizadoDTO dto) {
         Usuario user = usuarioService.getUsuarioLogueado();
         Producto producto = productoRepository
                 .findByIdAndEmpresaId(id, user.getEmpresa().getId())
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
 
         if (dto.nombre() != null) {
             producto.setNombre(dto.nombre());
@@ -91,8 +94,30 @@ public class ProductoService {
             producto.setDescripcion(dto.descripcion());
         }
 
+        if (dto.sku() != null && !dto.sku().equals(producto.getSku())) {
+            productoRepository.findByEmpresaIdAndSku(user.getEmpresa().getId(), dto.sku())
+                    .ifPresent(p -> {
+                        throw new ConflictException("El SKU ya existe en esta empresa");
+                    });
+            producto.setSku(dto.sku());
+        }
+
         if (dto.precio() != null) {
             producto.setPrecio(dto.precio());
+        }
+
+        if (dto.categoriaId() != null) {
+            var categoria = categoriaRepository.findByIdAndEmpresaId(dto.categoriaId(), user.getEmpresa().getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Categoria no encontrada"));
+            producto.setCategoria(categoria);
+            producto.setCategoriaTexto(categoria.getNombre());
+        } else if (dto.categoria() != null) {
+            producto.setCategoria(null);
+            producto.setCategoriaTexto(dto.categoria());
+        }
+
+        if (dto.activo() != null) {
+            producto.setActivo(dto.activo());
         }
 
         return ProductoMapper.toResponse(productoRepository.save(producto));
