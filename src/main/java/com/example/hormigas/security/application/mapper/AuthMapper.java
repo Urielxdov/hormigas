@@ -26,11 +26,6 @@ public class AuthMapper {
     }
 
     public static UsuarioResponseDTO toDto(final Usuario usuario) {
-        return new UsuarioResponseDTO(
-                usuario.getId(),
-                usuario.getUsername(),
-                usuario.getCorreo(),
-                usuario.getEmpresa().getId()
-        );
+        return UsuarioMapper.toResponse(usuario);
     }
 }

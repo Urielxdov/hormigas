@@ -2,6 +2,7 @@ package com.example.hormigas.security.infrastructure.controller;
 
 import com.example.hormigas.security.infrastructure.dtos.CreateUsuarioDTO;
 import com.example.hormigas.security.infrastructure.dtos.UsuarioResponseDTO;
+import com.example.hormigas.security.infrastructure.dtos.UsuarioUpdateDTO;
 import com.example.hormigas.security.domain.services.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -27,5 +28,15 @@ public class UsuarioController {
     public ResponseEntity<List<UsuarioResponseDTO>> obtenerTodos() {
         List<UsuarioResponseDTO> usuarios = usuarioService.getAllUsuarios();
         return ResponseEntity.ok(usuarios);
+    }
+
+    @PutMapping("/{id}")
+    public UsuarioResponseDTO actualizar(@PathVariable Long id, @Valid @RequestBody UsuarioUpdateDTO dto) {
+        return usuarioService.actualizarUsuario(id, dto);
+    }
+
+    @PatchMapping("/{id}/toggle")
+    public UsuarioResponseDTO toggleActivo(@PathVariable Long id) {
+        return usuarioService.toggleActivo(id);
     }
 }

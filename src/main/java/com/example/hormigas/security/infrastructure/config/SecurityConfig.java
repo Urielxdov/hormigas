@@ -71,6 +71,11 @@ public class SecurityConfig {
                 // Categorías: admin gestiona, todos pueden leer
                 .requestMatchers("/api/categoria/nueva").hasAuthority("ROLE_ADMIN")
                 .requestMatchers("/api/categoria/*/toggle").hasAuthority("ROLE_ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/categoria/*").hasAuthority("ROLE_ADMIN")
+
+                // Productos: solo el admin crea o modifica el catálogo (el cajero solo consulta)
+                .requestMatchers(HttpMethod.POST, "/api/producto/nuevo").hasAuthority("ROLE_ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/producto/*").hasAuthority("ROLE_ADMIN")
                 .requestMatchers("/api/categoria/**").authenticated()
 
                 // 4. Cualquier otra cosa logueado

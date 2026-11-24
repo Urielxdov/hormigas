@@ -8,11 +8,18 @@ import com.example.hormigas.security.domain.Usuario;
 public class UsuarioMapper {
 
     public static UsuarioResponseDTO toResponse(Usuario usuario) {
+        var sucursal = usuario.getSucursal();
         return new UsuarioResponseDTO(
                 usuario.getId(),
                 usuario.getNombre(),
                 usuario.getCorreo(),
-                usuario.getEmpresa().getId()
+                usuario.getEmpresa() != null ? usuario.getEmpresa().getId() : null,
+                sucursal != null ? sucursal.getId() : null,
+                sucursal != null ? sucursal.getNombre() : null,
+                usuario.isActivo(),
+                usuario.getRoles() == null ? java.util.List.of()
+                        : usuario.getRoles().stream().map(Enum::name).sorted().toList(),
+                usuario.getUltimoAcceso()
         );
     }
 
