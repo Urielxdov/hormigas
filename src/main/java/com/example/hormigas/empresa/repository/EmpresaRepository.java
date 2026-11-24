@@ -14,6 +14,7 @@ public interface EmpresaRepository extends JpaRepository<Empresa, Long> {
     Optional<Empresa> findByRfc(String rfc);
     Optional<Empresa> findByNombre(String nombre);
     List<Empresa> findAllByActivo(boolean activo);
+    List<Empresa> findAllByOrderByNombreAsc();
 
 
     boolean existsByNombre(String nombre);

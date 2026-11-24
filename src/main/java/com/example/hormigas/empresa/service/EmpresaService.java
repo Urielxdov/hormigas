@@ -31,23 +31,30 @@ public class EmpresaService {
     public EmpresaResponseDTO createEmpresa(EmpresaConAdminCreateDTO dto) {
         EmpresaCreateDTO empresaDto = dto.empresa();
         UsuarioEmpresaCreateDTO adminDto = dto.admin();
+        String rfc = empresaDto.rfc().trim().toUpperCase();
+        String nombre = empresaDto.nombre().trim();
 
-        if (empresaRepository.findByRfc(empresaDto.rfc()).isPresent()) {
+        // Antes de crear nada: si el correo del admin ya existe no se deja una empresa sin admin
+        if (usuarioService.existeCorreo(adminDto.correo())) {
+            throw new IllegalArgumentException("El correo del administrador ya está registrado");
+        }
+
+        if (empresaRepository.findByRfc(rfc).isPresent()) {
             logger.error("[COMPANY]: The company with rfc {} already exist", empresaDto.rfc());
             throw new EmpresaDuplicadaException("Ya existe una empresa con este RFC");
         }
 
-        if (empresaRepository.findByNombre(empresaDto.nombre()).isPresent()) {
+        if (empresaRepository.findByNombre(nombre).isPresent()) {
             logger.error("[COMPANY] : The company with name {} already exist", empresaDto.nombre());
             throw new EmpresaDuplicadaException("Ya existe una empresa con este nombre");
         }
 
         Empresa nuevaEmpresa = new Empresa();
 
-        nuevaEmpresa.setNombre(empresaDto.nombre());
-        nuevaEmpresa.setRfc(empresaDto.rfc());
-        nuevaEmpresa.setDireccion(empresaDto.direccion());
-        nuevaEmpresa.setTelefono(empresaDto.telefono());
+        nuevaEmpresa.setNombre(nombre);
+        nuevaEmpresa.setRfc(rfc);
+        nuevaEmpresa.setDireccion(empresaDto.direccion() == null ? null : empresaDto.direccion().trim());
+        nuevaEmpresa.setTelefono(empresaDto.telefono() == null || empresaDto.telefono().isBlank() ? null : empresaDto.telefono());
         nuevaEmpresa.setActivo(true);
 
         Empresa empresa = empresaRepository.save(nuevaEmpresa);
@@ -101,7 +108,15 @@ public class EmpresaService {
     // Eliminar empresa
     // Exclusivo de superadmin
     public void deleteEmpresa (Long id) {
-        empresaRepository.desactivarEmpresa(id);
+        Usuario actual = usuarioService.getUsuarioLogueado();
+        if (actual.getEmpresa() != null && actual.getEmpresa().getId().equals(id)) {
+            // Desactivarla bloquearia al propio superusuario (cuenta bloqueada)
+            throw new IllegalArgumentException("No puedes desactivar la empresa del sistema");
+        }
+        if (empresaRepository.desactivarEmpresa(id) == 0) {
+            throw new EntityNotFoundException("No se encontró la empresa");
+        }
+        logger.info("[COMPANY] : Company deactivated {}", id);
     }
 
     public void deleteEmpresa () {
@@ -148,10 +163,15 @@ public class EmpresaService {
         return EmpresaMapper.toResponseEmpresa(user.getEmpresa());
     }
 
-    // Obtener todas las empresas activas
+    // Obtener todas las empresas (activas e inactivas, para poder reactivarlas),
+    // sin la empresa del sistema a la que pertenece el superusuario.
     public List<EmpresaResponseDTO> getAllEmpresas() {
-        List<Empresa> empresas = empresaRepository.findAllByActivo(true);
-        logger.info("[COMPANY] : Retrieved all active companies. Total: {}", empresas.size());
+        Usuario actual = usuarioService.getUsuarioLogueado();
+        Long propia = actual.getEmpresa() != null ? actual.getEmpresa().getId() : null;
+        List<Empresa> empresas = empresaRepository.findAllByOrderByNombreAsc().stream()
+                .filter(e -> !e.getId().equals(propia))
+                .toList();
+        logger.info("[COMPANY] : Retrieved companies. Total: {}", empresas.size());
         return empresas.stream()
                 .map(EmpresaMapper::toResponseEmpresa)
                 .toList();

@@ -8,9 +8,10 @@ public class EmpresaMapper {
         return new EmpresaResponseDTO(
                 empresa.getId(),
                 empresa.getNombre(),
-                empresa.getDireccion(),
                 empresa.getRfc(),
-                empresa.getTelefono()
+                empresa.getDireccion(),
+                empresa.getTelefono(),
+                empresa.isActivo()
         );
     }
 }

@@ -5,5 +5,6 @@ public record EmpresaResponseDTO(
         String nombre,
         String rfc,
         String direccion,
-        String telefono
+        String telefono,
+        boolean activo
 ) {}
